@@ -9,7 +9,7 @@ definePageMeta({
 
 useSeoMeta({
   title: "Login",
-  description: "",
+  description: "Page de login",
 });
 
 import * as z from "zod";
