@@ -62,36 +62,37 @@ const schema = z.object({
 
 type Schema = z.output<typeof schema>;
 
-const authStore = useAuthStore();
-
-const { signIn } = authStore;
+const { signIn } = useAuth();
 
 const loading = ref(false);
 
 async function onSubmit(payload: FormSubmitEvent<Schema>) {
   loading.value = true;
 
-  const result = await signIn(payload.data, {
+  await signIn(payload.data, {
     callbackUrl: "/dashboard",
   });
 
-  if (result) {
-    toast.add({
-      title: "Authentificated",
-      description: `Welcome back !`,
-      icon: "i-lucide-log-in",
-      color: "success",
-      duration: 2000,
-    });
-  } else {
-    toast.add({
-      title: "Something wrong",
-      description: `Sorry, we cannot authentificate you.`,
-      icon: "i-lucide-alert-circle",
-      color: "warning",
-      duration: 2000,
-    });
-  }
+  // if (result) {
+  //   toast.add({
+  //     title: "Authentificate warning",
+  //     description: `${result.error.data.message}`,
+  //     type: "background",
+  //     icon: "i-lucide-alert-circle",
+  //     color: "warning",
+  //     duration: 2000,
+  //   });
+  //   return;
+  // }
+
+  // toast.add({
+  //   title: "Authentificated",
+  //   description: `Welcome back !`,
+  //   icon: "i-lucide-log-in",
+  //   type: "background",
+  //   color: "success",
+  //   duration: 2000,
+  // });
 
   loading.value = false;
 }

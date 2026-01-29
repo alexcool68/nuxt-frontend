@@ -1,4 +1,9 @@
 import { defineStore } from "pinia";
+export interface AuthError {
+  statut: string;
+  errors: string;
+  message: string;
+}
 
 export const useAuthStore = defineStore("auth", () => {
   const auth = useAuth();
@@ -17,15 +22,19 @@ export const useAuthStore = defineStore("auth", () => {
   );
 
   // Méthodes
+  // {
+  //  status: 'error',
+  //  errors: error.messages,
+  //  message: 'Validation failed',
+  // }
   const signIn = async (
     providerOrCredentials: Credential | object,
     options?: Record<string, string>,
   ) => {
     try {
       await auth.signIn(providerOrCredentials, options);
-      return true;
-    } catch (error) {
-      return false;
+    } catch (error: any) {
+      return { error: { message: "non" } };
     }
   };
 

@@ -12,8 +12,7 @@ const items = computed(() => [
   },
 ]);
 
-const authStore = useAuthStore();
-const { status, isAuthenticated } = authStore;
+const { status, signOut } = useAuth();
 </script>
 
 <template>
@@ -30,13 +29,13 @@ const { status, isAuthenticated } = authStore;
       <div v-if="status === 'loading'">
         <USkeleton class="h-8 w-20" :ui="{ rounded: 'rounded-md' }" />
       </div>
-      <div v-else-if="isAuthenticated">
+      <div v-else-if="status === 'authenticated'">
         <UButton
           label="Sign out"
           color="neutral"
           variant="outline"
           class="hidden lg:inline-flex"
-          @click="() => authStore.signOut({ callbackUrl: '/login' })"
+          @click="() => signOut({ callbackUrl: '/login' })"
         />
       </div>
       <div v-else>
@@ -82,13 +81,13 @@ const { status, isAuthenticated } = authStore;
           :ui="{ rounded: 'rounded-md' }"
         />
       </div>
-      <div v-else-if="isAuthenticated">
+      <div v-else-if="status === 'authenticated'">
         <UButton
           label="Sign out"
           color="neutral"
           variant="subtle"
           block
-          @click="() => authStore.signOut({ callbackUrl: '/login' })"
+          @click="() => signOut({ callbackUrl: '/login' })"
         />
       </div>
       <div v-else>

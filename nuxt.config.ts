@@ -9,16 +9,16 @@ export default defineNuxtConfig({
   ],
 
   runtimeConfig: {
-    // baseURL: "http://localhost:3333/api/auth",
+    // baseURL: "BASE_URL",
   },
 
   auth: {
     isEnabled: true,
     disableServerSideAuth: false,
     globalAppMiddleware: true,
-    // originEnvKey: "AUTH_ORIGIN",
-    // baseURL: "http://localhost:3333/api/auth",
-    baseURL: "http://adonis-backend.vps-01.alexis-leroy.fr:15501/api/auth",
+    originEnvKey: "AUTH_ORIGIN",
+    baseURL: "http://localhost:3333/api/auth",
+    // baseURL: "http://adonis-backend.vps-01.alexis-leroy.fr:15501/api/auth",
     session: {
       enableRefreshPeriodically: false,
       enableRefreshOnWindowFocus: false,

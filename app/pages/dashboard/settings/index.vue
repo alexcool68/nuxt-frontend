@@ -3,37 +3,45 @@ useSeoMeta({
   title: "Dashboard - Settings",
   description: "",
 });
+
 import * as z from "zod";
 import type { FormSubmitEvent } from "@nuxt/ui";
 
 const fileRef = ref<HTMLInputElement>();
 
 const profileSchema = z.object({
-  name: z.string().min(2, "Too short"),
+  fullName: z.string().min(2, "Too short").optional(),
   email: z.string().email("Invalid email"),
-  username: z.string().min(2, "Too short"),
-  avatar: z.string().optional(),
-  bio: z.string().optional(),
 });
 
 type ProfileSchema = z.output<typeof profileSchema>;
 
 const profile = reactive<Partial<ProfileSchema>>({
-  name: "Benjamin Canac",
+  fullName: "Benjamin Canac",
   email: "ben@nuxtlabs.com",
-  username: "benjamincanac",
-  avatar: undefined,
-  bio: undefined,
 });
+
 const toast = useToast();
+
 async function onSubmit(event: FormSubmitEvent<ProfileSchema>) {
-  toast.add({
-    title: "Success",
-    description: "Your settings have been updated.",
-    icon: "i-lucide-check",
-    color: "success",
+  const data = await useFetch("/api/auth/change-fullname", {
+    baseURL: "http://localhost:3333",
+    headers: {
+      authorization: `${useAuth().token.value}`,
+    },
+    method: "PATCH",
+    body: {
+      fullName: "dzadzad",
+    },
   });
-  console.log(event.data);
+
+  // toast.add({
+  //   title: "Success",
+  //   description: "Your settings have been updated.",
+  //   icon: "i-lucide-check",
+  //   color: "success",
+  // });
+  // console.log(event.data);
 }
 
 function onFileChange(e: Event) {
@@ -42,8 +50,6 @@ function onFileChange(e: Event) {
   if (!input.files?.length) {
     return;
   }
-
-  profile.avatar = URL.createObjectURL(input.files[0]!);
 }
 
 function onFileClick() {
@@ -53,6 +59,54 @@ function onFileClick() {
 
 <template>
   <UForm
+    id="settings"
+    :schema="profileSchema"
+    :state="profile"
+    @submit="onSubmit"
+  >
+    <UPageCard
+      title="Profile"
+      description="These informations will be displayed publicly."
+      variant="naked"
+      orientation="horizontal"
+      class="mb-4"
+    >
+      <UButton
+        form="settings"
+        label="Save changes"
+        color="neutral"
+        type="submit"
+        class="w-fit lg:ms-auto"
+      />
+    </UPageCard>
+
+    <UPageCard variant="subtle">
+      <UFormField
+        name="fullName"
+        label="Full name"
+        description="Will appear on receipts, invoices, and other communication."
+        class="flex max-sm:flex-col justify-between items-start gap-4"
+      >
+        <UInput v-model="profile.fullName" autocomplete="off" />
+      </UFormField>
+      <USeparator />
+      <UFormField
+        name="email"
+        label="Email"
+        description="Used to sign in, for email receipts and product updates."
+        required
+        class="flex max-sm:flex-col justify-between items-start gap-4"
+      >
+        <UInput
+          v-model="profile.email"
+          type="email"
+          autocomplete="off"
+          :disabled="true"
+        />
+      </UFormField>
+    </UPageCard>
+  </UForm>
+  <!-- <UForm
     id="settings"
     :schema="profileSchema"
     :state="profile"
@@ -134,5 +188,5 @@ function onFileClick() {
         <UTextarea v-model="profile.bio" :rows="5" autoresize class="w-full" />
       </UFormField>
     </UPageCard>
-  </UForm>
+  </UForm> -->
 </template>

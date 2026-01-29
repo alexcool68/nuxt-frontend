@@ -29,14 +29,13 @@ const colors = [
 ];
 const neutrals = ["slate", "gray", "zinc", "neutral", "stone"];
 
-const authStore = useAuthStore();
-const { user: data, signOut } = authStore;
+const { data, signOut } = useAuth();
 
 const user = ref({
-  name: data?.fullName,
+  name: data.value?.user.fullName,
   avatar: {
     src: "https://avatars.githubusercontent.com/u/739984?v=4",
-    alt: data?.fullName,
+    alt: data.value?.user.fullName,
   },
 });
 

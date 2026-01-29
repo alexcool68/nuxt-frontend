@@ -27,7 +27,7 @@ const items = [
   ],
 ] satisfies DropdownMenuItem[][];
 
-// const { data } = useAuth();
+const { data } = useAuth();
 </script>
 
 <template>
@@ -68,6 +68,16 @@ const items = [
       </UDashboardToolbar>
     </template>
 
-    <template #body></template>
+    <template #body>
+      <UCard variant="subtle">
+        <template #header>
+          <h2>Session data</h2>
+        </template>
+        <pre>{{ JSON.stringify(data, null, 2) }}</pre>
+        <template #footer>
+          <h3>{{ data?.user.email }}</h3>
+        </template>
+      </UCard>
+    </template>
   </UDashboardPanel>
 </template>
