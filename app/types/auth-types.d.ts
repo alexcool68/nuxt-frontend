@@ -3,8 +3,8 @@ export default interface SessionConfig {}
 declare module "#auth" {
   interface AuthUser {
     user: {
-      id: string | number;
-      fullName: string;
+      id: number;
+      fullName?: string;
       email: string;
       createdAt: string;
       updatedAt: string;

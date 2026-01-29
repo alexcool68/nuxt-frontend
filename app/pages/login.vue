@@ -14,6 +14,9 @@ useSeoMeta({
 
 import * as z from "zod";
 import type { FormSubmitEvent } from "@nuxt/ui";
+import { useUserStore } from "@/stores/user";
+
+const userStore = useUserStore();
 
 const toast = useToast();
 
@@ -62,16 +65,18 @@ const schema = z.object({
 
 type Schema = z.output<typeof schema>;
 
-const { signIn } = useAuth();
+const { signIn, data } = useAuth();
 
 const loading = ref(false);
 
 async function onSubmit(payload: FormSubmitEvent<Schema>) {
   loading.value = true;
 
-  await signIn(payload.data, {
-    callbackUrl: "/dashboard",
-  });
+  try {
+    await signIn(payload.data, {
+      callbackUrl: "/dashboard",
+    });
+  } catch (e: any) {}
 
   loading.value = false;
 }

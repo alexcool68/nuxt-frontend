@@ -30,10 +30,7 @@ const colors = [
 const neutrals = ["slate", "gray", "zinc", "neutral", "stone"];
 
 const { data, signOut } = useAuth();
-
-// const userFullName = computed(() =>
-//   getSession().then((data) => data?.user.fullName),
-// );
+const userStore = useUserStore();
 
 const user = ref({
   name: data.value?.user.fullName,
@@ -42,6 +39,11 @@ const user = ref({
     alt: data.value?.user.fullName,
   },
 });
+
+async function handleLogout() {
+  await signOut({ callbackUrl: "/login" });
+  userStore.clearUser();
+}
 
 const items = computed<DropdownMenuItem[][]>(() => [
   [
@@ -111,7 +113,6 @@ const items = computed<DropdownMenuItem[][]>(() => [
             checked: appConfig.ui.colors.neutral === color,
             onSelect: (e) => {
               e.preventDefault();
-
               appConfig.ui.colors.neutral = color;
             },
           })),
@@ -129,7 +130,6 @@ const items = computed<DropdownMenuItem[][]>(() => [
           checked: colorMode.value === "light",
           onSelect(e: Event) {
             e.preventDefault();
-
             colorMode.preference = "light";
           },
         },
@@ -168,7 +168,7 @@ const items = computed<DropdownMenuItem[][]>(() => [
       icon: "i-lucide-log-out",
       onSelect: (e: Event) => {
         e.preventDefault();
-        signOut({ callbackUrl: "/login" });
+        handleLogout();
       },
     },
   ],
