@@ -7,7 +7,7 @@ useSeoMeta({
 import * as z from "zod";
 import type { FormSubmitEvent } from "@nuxt/ui";
 
-const fileRef = ref<HTMLInputElement>();
+const { getSession, data } = useAuth();
 
 const profileSchema = z.object({
   fullName: z.string().min(2, "Too short").optional(),
@@ -17,43 +17,31 @@ const profileSchema = z.object({
 type ProfileSchema = z.output<typeof profileSchema>;
 
 const profile = reactive<Partial<ProfileSchema>>({
-  fullName: "Benjamin Canac",
-  email: "ben@nuxtlabs.com",
+  fullName: data.value?.user.fullName,
+  email: data.value?.user.email,
 });
 
 const toast = useToast();
 
 async function onSubmit(event: FormSubmitEvent<ProfileSchema>) {
-  const data = await useFetch("/api/auth/change-fullname", {
-    baseURL: "http://localhost:3333",
+  await useFetch("/api/auth/change-fullname", {
     headers: {
       authorization: `${useAuth().token.value}`,
     },
     method: "PATCH",
     body: {
-      fullName: "dzadzad",
+      fullName: event.data.fullName,
     },
   });
 
-  // toast.add({
-  //   title: "Success",
-  //   description: "Your settings have been updated.",
-  //   icon: "i-lucide-check",
-  //   color: "success",
-  // });
-  // console.log(event.data);
-}
+  toast.add({
+    title: "Success",
+    description: "Your settings have been updated.",
+    icon: "i-lucide-check",
+    color: "success",
+  });
 
-function onFileChange(e: Event) {
-  const input = e.target as HTMLInputElement;
-
-  if (!input.files?.length) {
-    return;
-  }
-}
-
-function onFileClick() {
-  fileRef.value?.click();
+  getSession();
 }
 </script>
 

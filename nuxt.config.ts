@@ -9,7 +9,7 @@ export default defineNuxtConfig({
   ],
 
   runtimeConfig: {
-    // baseURL: "BASE_URL",
+    baseURL: "BASE_URL",
   },
 
   auth: {
@@ -17,7 +17,7 @@ export default defineNuxtConfig({
     disableServerSideAuth: false,
     globalAppMiddleware: true,
     originEnvKey: "AUTH_ORIGIN",
-    baseURL: "http://localhost:3333/api/auth",
+    baseURL: "http://127.0.0.1:3333/api/auth",
     // baseURL: "http://adonis-backend.vps-01.alexis-leroy.fr:15501/api/auth",
     session: {
       enableRefreshPeriodically: false,
@@ -66,6 +66,10 @@ export default defineNuxtConfig({
 
   routeRules: {
     "/": { prerender: true },
+    "/api/auth/**": {
+      cors: true,
+      proxy: { to: "http://127.0.0.1:3333/api/auth/**" },
+    },
   },
 
   compatibilityDate: "2025-01-15",

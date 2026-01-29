@@ -73,27 +73,6 @@ async function onSubmit(payload: FormSubmitEvent<Schema>) {
     callbackUrl: "/dashboard",
   });
 
-  // if (result) {
-  //   toast.add({
-  //     title: "Authentificate warning",
-  //     description: `${result.error.data.message}`,
-  //     type: "background",
-  //     icon: "i-lucide-alert-circle",
-  //     color: "warning",
-  //     duration: 2000,
-  //   });
-  //   return;
-  // }
-
-  // toast.add({
-  //   title: "Authentificated",
-  //   description: `Welcome back !`,
-  //   icon: "i-lucide-log-in",
-  //   type: "background",
-  //   color: "success",
-  //   duration: 2000,
-  // });
-
   loading.value = false;
 }
 </script>

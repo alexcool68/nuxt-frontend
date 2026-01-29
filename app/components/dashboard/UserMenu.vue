@@ -31,6 +31,10 @@ const neutrals = ["slate", "gray", "zinc", "neutral", "stone"];
 
 const { data, signOut } = useAuth();
 
+// const userFullName = computed(() =>
+//   getSession().then((data) => data?.user.fullName),
+// );
+
 const user = ref({
   name: data.value?.user.fullName,
   avatar: {
