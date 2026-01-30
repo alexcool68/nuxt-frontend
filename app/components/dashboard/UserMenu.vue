@@ -30,19 +30,24 @@ const colors = [
 const neutrals = ["slate", "gray", "zinc", "neutral", "stone"];
 
 const { data, signOut } = useAuth();
+
 const userStore = useUserStore();
 
+const fullName = computed(() => {
+  return userStore.user?.fullName || data.value?.email;
+});
+
 const user = ref({
-  name: data.value?.user.fullName,
+  name: fullName,
   avatar: {
     src: "https://avatars.githubusercontent.com/u/739984?v=4",
-    alt: data.value?.user.fullName,
+    alt: data.value?.fullName,
   },
 });
 
 async function handleLogout() {
   await signOut({ callbackUrl: "/login" });
-  userStore.clearUser();
+  //userStore.clearUser();
 }
 
 const items = computed<DropdownMenuItem[][]>(() => [

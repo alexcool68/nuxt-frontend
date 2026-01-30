@@ -75,7 +75,9 @@ const { data } = useAuth();
         </template>
         <pre>{{ JSON.stringify(data, null, 2) }}</pre>
         <template #footer>
-          <h3>{{ data?.user.email }}</h3>
+          <div>
+            <span>{{ data?.email }}</span>
+          </div>
         </template>
       </UCard>
     </template>

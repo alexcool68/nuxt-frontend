@@ -2,13 +2,11 @@ export default interface SessionConfig {}
 
 declare module "#auth" {
   interface AuthUser {
-    user: {
-      id: number;
-      fullName?: string;
-      email: string;
-      createdAt: string;
-      updatedAt: string;
-    };
+    id: number;
+    fullName?: string;
+    email: string;
+    createdAt: string;
+    updatedAt: string;
   }
 
   interface SessionData extends AuthUser {}

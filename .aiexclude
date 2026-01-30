@@ -1,9 +1,8 @@
 # Dossiers de build et de cache de Flutter/Dart
-
 node_modules/
+build/
 .nuxt/
 .github/
-build/
 .dart_tool/
 .pub_cache/
 
@@ -18,7 +17,6 @@ build/
 .vscode/
 
 # Rapports, logs et autres fichiers non pertinents
-
 _.log
 _.html
 \*.apk

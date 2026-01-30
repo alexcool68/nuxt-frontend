@@ -5,7 +5,9 @@
     <AppHeader />
 
     <UMain>
-      <slot />
+      <div>
+        <slot />
+      </div>
     </UMain>
 
     <AppFooter />

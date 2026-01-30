@@ -28,7 +28,7 @@ export const useUserStore = defineStore("user", {
         const session = await getSession();
 
         if (session && data.value) {
-          this.user = data.value.user as User;
+          this.user = data.value as User;
         }
       } catch (error) {
         console.error(

@@ -7,7 +7,11 @@ export default defineNuxtPlugin(async () => {
     status,
     async (newStatus) => {
       if (newStatus === "authenticated" && data.value) {
-        userStore.setUser(data.value.user);
+        userStore.setUser({
+          email: data.value.email,
+          fullName: data.value.fullName,
+          id: data.value.id as number,
+        });
       } else if (newStatus === "unauthenticated") {
         userStore.clearUser();
       }

@@ -18,23 +18,23 @@ const links = [
         open.value = false;
       },
     },
-    {
-      label: "Inbox",
-      icon: "i-lucide-inbox",
-      to: "/dashboard/inbox",
-      badge: "4",
-      onSelect: () => {
-        open.value = false;
-      },
-    },
-    {
-      label: "Customers",
-      icon: "i-lucide-users",
-      to: "/dashboard/customers",
-      onSelect: () => {
-        open.value = false;
-      },
-    },
+    // {
+    //   label: "Inbox",
+    //   icon: "i-lucide-inbox",
+    //   to: "/dashboard/inbox",
+    //   badge: "4",
+    //   onSelect: () => {
+    //     open.value = false;
+    //   },
+    // },
+    // {
+    //   label: "Customers",
+    //   icon: "i-lucide-users",
+    //   to: "/dashboard/customers",
+    //   onSelect: () => {
+    //     open.value = false;
+    //   },
+    // },
     {
       label: "Settings",
       to: "/dashboard/settings",
@@ -149,6 +149,7 @@ const groups = computed(() => [
     <UDashboardSearch :groups="groups" />
 
     <slot />
+
     <NotificationsSlideover />
   </UDashboardGroup>
 </template>

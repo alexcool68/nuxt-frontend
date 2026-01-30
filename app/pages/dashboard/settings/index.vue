@@ -7,41 +7,55 @@ useSeoMeta({
 import * as z from "zod";
 import type { FormSubmitEvent } from "@nuxt/ui";
 
-const { getSession, data } = useAuth();
+// const { getSession, data } = useAuth();
+const userStore = useUserStore();
 
 const profileSchema = z.object({
-  fullName: z.string().min(2, "Too short").optional(),
-  email: z.string().email("Invalid email"),
+  fullName: z.string().min(0, "Too short").optional(),
+  email: z.email("Invalid email"),
 });
 
 type ProfileSchema = z.output<typeof profileSchema>;
 
 const profile = reactive<Partial<ProfileSchema>>({
-  fullName: data.value?.user.fullName,
-  email: data.value?.user.email,
+  fullName: userStore.user?.fullName,
+  email: userStore.user?.email,
 });
 
 const toast = useToast();
 
 async function onSubmit(event: FormSubmitEvent<ProfileSchema>) {
-  await useFetch("/api/auth/change-fullname", {
-    headers: {
-      authorization: `${useAuth().token.value}`,
-    },
-    method: "PATCH",
-    body: {
-      fullName: event.data.fullName,
-    },
-  });
-
-  toast.add({
-    title: "Success",
-    description: "Your settings have been updated.",
-    icon: "i-lucide-check",
-    color: "success",
-  });
-
-  getSession();
+  const config = useRuntimeConfig();
+  const baseURL = config.public.apiBaseUrl;
+  try {
+    await $fetch(`${baseURL}/api/auth/change-fullname`, {
+      headers: {
+        authorization: `${useAuth().token.value}`,
+      },
+      method: "PATCH",
+      body: {
+        fullName: event.data.fullName,
+      },
+    })
+      .then(() => useAuth().getSession())
+      .finally(() =>
+        toast.add({
+          type: "background",
+          title: "Success",
+          description: "Your settings have been updated.",
+          icon: "i-lucide-check",
+          color: "success",
+        }),
+      );
+  } catch (e: any) {
+    toast.add({
+      type: "background",
+      title: "Oups, something went wrong",
+      description: e.data.message,
+      icon: "i-lucide-circle-x",
+      color: "warning",
+    });
+  }
 }
 </script>
 
@@ -62,7 +76,7 @@ async function onSubmit(event: FormSubmitEvent<ProfileSchema>) {
       <UButton
         form="settings"
         label="Save changes"
-        color="neutral"
+        color="primary"
         type="submit"
         class="w-fit lg:ms-auto"
       />
