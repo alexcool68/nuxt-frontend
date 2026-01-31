@@ -29,7 +29,7 @@ export default defineNuxtConfig({
 
   runtimeConfig: {
     public: {
-      apiBaseUrl: "http://127.0.0.1:3333",
+      authBaseUrl: "http://127.0.0.1:3333",
       siteUrl: "http://localhost:3000",
     },
   },
@@ -39,7 +39,7 @@ export default defineNuxtConfig({
     isEnabled: true,
     disableServerSideAuth: false,
     globalAppMiddleware: true,
-    baseURL: "http://127.0.0.1:3333",
+    //baseURL: "authBaseUrl",
     session: {
       enableRefreshPeriodically: false,
       enableRefreshOnWindowFocus: false,
