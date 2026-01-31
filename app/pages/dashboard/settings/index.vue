@@ -26,7 +26,7 @@ const toast = useToast();
 
 async function onSubmit(event: FormSubmitEvent<ProfileSchema>) {
   const config = useRuntimeConfig();
-  const baseURL = "https://backend-api.alexis-leroy.fr";
+  const baseURL = config.public.authBaseUrl;
   try {
     await $fetch(`${baseURL}/api/auth/change-fullname`, {
       headers: {
