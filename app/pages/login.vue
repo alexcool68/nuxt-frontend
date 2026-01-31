@@ -79,8 +79,9 @@ async function onSubmit(payload: FormSubmitEvent<Schema>) {
       type: "background",
       title: "Oups, something went wrong",
       description: e.data.message,
-      icon: "i-lucide-circle-x",
+      icon: "i-lucide-x",
       color: "warning",
+      duration: 3000,
     });
   }
 

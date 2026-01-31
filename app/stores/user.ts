@@ -1,16 +1,10 @@
 import { defineStore } from "pinia";
 
-//import type User from "~/types/user-types";
-
-interface User {
-  id: number;
-  email: string;
-  fullName?: string;
-}
+import type { SessionData } from "#auth";
 
 export const useUserStore = defineStore("user", {
   state: () => ({
-    user: null as User | null,
+    user: null as SessionData | null,
     isLoading: false,
   }),
 
@@ -18,7 +12,7 @@ export const useUserStore = defineStore("user", {
     isAuthenticated: (state) => !!state.user,
   },
   actions: {
-    setUser(userData: User | null) {
+    setUser(userData: SessionData | null) {
       this.user = userData;
     },
     async fetchUser() {
@@ -28,7 +22,7 @@ export const useUserStore = defineStore("user", {
         const session = await getSession();
 
         if (session && data.value) {
-          this.user = data.value as User;
+          this.user = data.value as SessionData;
         }
       } catch (error) {
         console.error(

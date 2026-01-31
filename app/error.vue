@@ -52,6 +52,11 @@ const links = [
 
     <AppFooter />
 
-    <UToaster />
+    <!-- <UToaster /> -->
   </div>
 </template>
+<!-- <template>
+  <UApp>
+    <UError :error="error" />
+  </UApp>
+</template> -->

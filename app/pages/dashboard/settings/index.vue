@@ -7,7 +7,6 @@ useSeoMeta({
 import * as z from "zod";
 import type { FormSubmitEvent } from "@nuxt/ui";
 
-// const { getSession, data } = useAuth();
 const userStore = useUserStore();
 
 const profileSchema = z.object({
@@ -30,30 +29,31 @@ async function onSubmit(event: FormSubmitEvent<ProfileSchema>) {
   try {
     await $fetch(`${baseURL}/api/auth/change-fullname`, {
       headers: {
-        authorization: `${useAuth().token.value}`,
+        Authorization: `${useAuth().token.value}`,
       },
       method: "PATCH",
       body: {
-        fullName: event.data.fullName,
+        fullName: event.data.fullName || null,
       },
-    })
-      .then(() => useAuth().getSession())
-      .finally(() =>
-        toast.add({
-          type: "background",
-          title: "Success",
-          description: "Your settings have been updated.",
-          icon: "i-lucide-check",
-          color: "success",
-        }),
-      );
+    });
+
+    await userStore.fetchUser();
+    profile.fullName = userStore.user?.fullName;
+
+    toast.add({
+      title: "Success",
+      description: "Your settings have been updated.",
+      icon: "i-lucide-check",
+      color: "success",
+      duration: 3000,
+    });
   } catch (e: any) {
     toast.add({
-      type: "background",
       title: "Oups, something went wrong",
       description: e.data.message,
-      icon: "i-lucide-circle-x",
-      color: "warning",
+      icon: "i-lucide-x",
+      color: "error",
+      duration: 3000,
     });
   }
 }

@@ -28,6 +28,7 @@ const items = [
 ] satisfies DropdownMenuItem[][];
 
 const { data } = useAuth();
+const userStore = useUserStore();
 </script>
 
 <template>
@@ -69,17 +70,44 @@ const { data } = useAuth();
     </template>
 
     <template #body>
-      <UCard variant="subtle">
-        <template #header>
-          <h2>Session data</h2>
-        </template>
-        <pre>{{ JSON.stringify(data, null, 2) }}</pre>
-        <template #footer>
-          <div>
-            <span>{{ data?.email }}</span>
-          </div>
-        </template>
-      </UCard>
+      <h1 class="font-bold text-3xl">Somes data</h1>
+
+      <UPageGrid class="lg:grid-cols-2 gap-4 sm:gap-6 lg:gap-px">
+        <UPageCard
+          variant="subtle"
+          title="Session data"
+          description="This is the session auth data"
+          key="1"
+          icon="i-lucide-book"
+          :ui="{
+            container: 'gap-y-1.5',
+            wrapper: 'items-start',
+            leading:
+              'p-2.5 rounded-full bg-primary/10 ring ring-inset ring-primary/25 flex-col',
+            title: 'font-normal text-muted text-xs uppercase',
+          }"
+          class="lg:rounded-none first:rounded-l-lg last:rounded-r-lg hover:z-1"
+        >
+          <pre>{{ JSON.stringify(data, null, 2) }}</pre>
+        </UPageCard>
+        <UPageCard
+          variant="subtle"
+          title="Pinia auth data"
+          description="This is the pinia store user data"
+          icon="i-lucide-store"
+          key="2"
+          :ui="{
+            container: 'gap-y-1.5',
+            wrapper: 'items-start',
+            leading:
+              'p-2.5 rounded-full bg-primary/10 ring ring-inset ring-primary/25 flex-col',
+            title: 'font-normal text-muted text-xs uppercase',
+          }"
+          class="lg:rounded-none first:rounded-l-lg last:rounded-r-lg hover:z-1"
+        >
+          <pre>{{ JSON.stringify(userStore.$state, null, 2) }}</pre>
+        </UPageCard>
+      </UPageGrid>
     </template>
   </UDashboardPanel>
 </template>
