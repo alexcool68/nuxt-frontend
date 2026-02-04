@@ -27,14 +27,68 @@ const links = [
     //     open.value = false;
     //   },
     // },
-    // {
-    //   label: "Customers",
-    //   icon: "i-lucide-users",
-    //   to: "/dashboard/customers",
-    //   onSelect: () => {
-    //     open.value = false;
-    //   },
-    // },
+    {
+      label: "Compta",
+      icon: "i-lucide-hand-coins",
+      to: "/dashboard/compta",
+      onSelect: () => {
+        open.value = false;
+      },
+      type: "trigger",
+      children: [
+        {
+          label: "DP01",
+          to: "/dashboard/compta/DP01",
+          exact: true,
+          onSelect: () => {
+            open.value = false;
+          },
+        },
+        // {
+        //   label: "Movments",
+        //   to: "/dashboard/compta/movments",
+        //   exact: true,
+        //   onSelect: () => {
+        //     open.value = false;
+        //   },
+        // },
+        // {
+        //   label: "Chains",
+        //   to: "/dashboard/compta/chains",
+        //   onSelect: () => {
+        //     open.value = false;
+        //   },
+        // },
+        // {
+        //   label: "Steps",
+        //   to: "/dashboard/compta/steps",
+        //   onSelect: () => {
+        //     open.value = false;
+        //   },
+        // },
+        // {
+        //   label: "Files",
+        //   to: "/dashboard/compta/files",
+        //   onSelect: () => {
+        //     open.value = false;
+        //   },
+        // },
+        // {
+        //   label: "Rules",
+        //   to: "/dashboard/compta/rules",
+        //   onSelect: () => {
+        //     open.value = false;
+        //   },
+        // },
+        // {
+        //   label: "Settings",
+        //   to: "/dashboard/compta/settings",
+        //   onSelect: () => {
+        //     open.value = false;
+        //   },
+        // },
+      ],
+    },
     {
       label: "Settings",
       to: "/dashboard/settings",
