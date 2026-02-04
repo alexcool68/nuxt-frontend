@@ -29,3 +29,25 @@ export interface WorkflowResponse {
   description: string;
   workflow: WorkflowStep[];
 }
+
+export interface StepFile {
+  id?: number;
+  direction: "IN" | "OUT";
+  logicalName: string;
+  defaultPhysicalName: string;
+  defaultCopybook: string;
+}
+
+export interface Step {
+  id?: number;
+  name: string;
+  rank: number;
+  possibleFiles: StepFile[];
+}
+
+export interface Chain {
+  id: number;
+  code: string;
+  description: string;
+  steps: Step[];
+}

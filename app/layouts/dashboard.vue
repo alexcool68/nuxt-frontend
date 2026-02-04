@@ -5,8 +5,26 @@ import AppLogo from "~/components/AppLogo.vue";
 import UserMenu from "~/components/dashboard/UserMenu.vue";
 import NotificationsSlideover from "~/components/dashboard/NotificationsSlideover.vue";
 
+import type { Chain } from "~/types/compta";
 const route = useRoute();
 const open = ref(false);
+
+const config = useRuntimeConfig();
+
+const baseURL = config.public.authBaseUrl || "http://localhost:3333";
+
+const {
+  data: movements,
+  status,
+  error,
+  refresh,
+} = await useFetch<Chain[]>(`${baseURL}/api/movements`);
+const allMovementsLinks =
+  movements.value?.map((movement) => ({
+    label: movement.code,
+    to: `/dashboard/compta/${movement.code}`,
+    exact: true,
+  })) || [];
 
 const links = [
   [
@@ -18,15 +36,6 @@ const links = [
         open.value = false;
       },
     },
-    // {
-    //   label: "Inbox",
-    //   icon: "i-lucide-inbox",
-    //   to: "/dashboard/inbox",
-    //   badge: "4",
-    //   onSelect: () => {
-    //     open.value = false;
-    //   },
-    // },
     {
       label: "Compta",
       icon: "i-lucide-hand-coins",
@@ -37,56 +46,21 @@ const links = [
       type: "trigger",
       children: [
         {
-          label: "DP01",
-          to: "/dashboard/compta/DP01",
+          label: "Movements",
+          exact: true,
+          onSelect: () => {
+            open.value = false;
+          },
+          children: allMovementsLinks,
+        },
+        {
+          label: "Catalogue",
+          to: "/dashboard/compta/catalogue",
           exact: true,
           onSelect: () => {
             open.value = false;
           },
         },
-        // {
-        //   label: "Movments",
-        //   to: "/dashboard/compta/movments",
-        //   exact: true,
-        //   onSelect: () => {
-        //     open.value = false;
-        //   },
-        // },
-        // {
-        //   label: "Chains",
-        //   to: "/dashboard/compta/chains",
-        //   onSelect: () => {
-        //     open.value = false;
-        //   },
-        // },
-        // {
-        //   label: "Steps",
-        //   to: "/dashboard/compta/steps",
-        //   onSelect: () => {
-        //     open.value = false;
-        //   },
-        // },
-        // {
-        //   label: "Files",
-        //   to: "/dashboard/compta/files",
-        //   onSelect: () => {
-        //     open.value = false;
-        //   },
-        // },
-        // {
-        //   label: "Rules",
-        //   to: "/dashboard/compta/rules",
-        //   onSelect: () => {
-        //     open.value = false;
-        //   },
-        // },
-        // {
-        //   label: "Settings",
-        //   to: "/dashboard/compta/settings",
-        //   onSelect: () => {
-        //     open.value = false;
-        //   },
-        // },
       ],
     },
     {
