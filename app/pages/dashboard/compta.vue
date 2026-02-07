@@ -11,11 +11,11 @@ import type { NavigationMenuItem } from "@nuxt/ui";
 
 const links = [
   [
-    {
-      label: "DP01",
-      to: "/dashboard/compta/DP01",
-      exact: true,
-    },
+    // {
+    //   label: "DP01",
+    //   to: "/dashboard/compta/DP01",
+    //   exact: true,
+    // },
   ],
   [],
 ] satisfies NavigationMenuItem[][];

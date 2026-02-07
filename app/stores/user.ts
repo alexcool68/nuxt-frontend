@@ -4,7 +4,7 @@ import type { SessionData } from "#auth";
 
 export const useUserStore = defineStore("user", {
   state: () => ({
-    user: null as SessionData | null,
+    user: null as Partial<SessionData> | null,
     isLoading: false,
   }),
 
@@ -12,7 +12,7 @@ export const useUserStore = defineStore("user", {
     isAuthenticated: (state) => !!state.user,
   },
   actions: {
-    setUser(userData: SessionData | null) {
+    setUser(userData: Partial<SessionData> | null) {
       this.user = userData;
     },
     async fetchUser() {
@@ -22,7 +22,7 @@ export const useUserStore = defineStore("user", {
         const session = await getSession();
 
         if (session && data.value) {
-          this.user = data.value as SessionData;
+          this.user = data.value as Partial<SessionData>;
         }
       } catch (error) {
         console.error(

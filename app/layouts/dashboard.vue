@@ -61,13 +61,26 @@ const links = [
             open.value = false;
           },
         },
+        {
+          label: "Configuration",
+          to: "/dashboard/compta/configuration",
+          exact: true,
+          onSelect: () => {
+            open.value = false;
+          },
+        },
+        {
+          label: "Tests",
+          to: "/dashboard/test",
+          exact: true,
+        },
       ],
     },
     {
       label: "Settings",
       to: "/dashboard/settings",
       icon: "i-lucide-settings",
-      defaultOpen: true,
+      defaultOpen: false,
       type: "trigger",
       children: [
         {
@@ -174,6 +187,7 @@ const groups = computed(() => [
         <UserMenu :collapsed="collapsed" />
       </template>
     </UDashboardSidebar>
+
     <UDashboardSearch :groups="groups" />
 
     <slot />
