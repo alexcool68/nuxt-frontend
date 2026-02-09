@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import type { Chain, Step, StepFile } from "~/types/compta";
+import type { Chain, Step } from "~/types/compta";
+import { watch } from "vue";
 
 useSeoMeta({
   title: "Dashboard - Compta - Catalogue",
@@ -19,29 +20,34 @@ const {
 } = await useFetch<Chain[]>(`${baseURL}/api/chains`);
 
 // État des Modales
+const isLoading = ref(false);
 const isChainModalOpen = ref(false);
 const isStepModalOpen = ref(false);
 
 const isChainDeleteModalOpen = ref(false);
 const isStepDeleteModalOpen = ref(false);
-const isStepFileDeleteModalOpen = ref(false);
 
 const isFileSlideoverOpen = ref(false);
 
 // Données temporaires pour les formulaires
 const newChain = ref({ code: "", description: "" });
 const newStep = ref({ name: "", rank: 10, chainId: 0 });
-const newFile = ref({
-  direction: "IN",
-  logicalName: "",
-  defaultPhysicalName: "",
-  defaultCopybook: "",
-});
 
 const currentStep = ref<Step | null>(null);
 const currentChain = ref<Chain | null>(null);
-const currentStepFile = ref<StepFile | null>(null);
 
+watch(
+  chains,
+  (newChains) => {
+    if (currentStep.value && newChains) {
+      const updatedStep = newChains
+        .flatMap((chain) => chain.steps)
+        .find((step) => step.id === currentStep.value!.id);
+      currentStep.value = updatedStep || null;
+    }
+  },
+  { deep: true },
+);
 // 1. CRÉER
 async function createChain() {
   if (!newChain.value.code) return;
@@ -78,32 +84,6 @@ async function createStep() {
   }
 }
 
-async function createFileStep() {
-  if (!currentStep.value) return;
-
-  const stepId = currentStep.value.id;
-
-  try {
-    await $fetch(`${baseURL}/api/steps/${stepId}/files`, {
-      method: "POST",
-      body: { ...newFile.value },
-    });
-
-    newFile.value = {
-      direction: "IN",
-      logicalName: "",
-      defaultPhysicalName: "",
-      defaultCopybook: "",
-    };
-
-    await refresh();
-
-    updateCurrentStep(stepId!);
-  } catch (e: any) {
-    formatAndDisplayErrors(e);
-  }
-}
-
 // 2. OUVRIR MODAL
 function openStepModal(chain: Chain) {
   if (!chain.id) return;
@@ -126,25 +106,10 @@ function confirmDeleteStep(step: Step) {
   isStepDeleteModalOpen.value = true;
 }
 
-function confirmDeleteStepFile(stepFile: StepFile) {
-  currentStepFile.value = stepFile;
-  isStepFileDeleteModalOpen.value = true;
-}
-
 // 3. SLIDEOVER
 function manageFiles(step: Step) {
   currentStep.value = step;
   isFileSlideoverOpen.value = true;
-}
-
-function updateCurrentStep(stepId: number) {
-  if (!chains.value) return;
-
-  const updatedStep = chains.value
-    .flatMap((chain) => chain.steps)
-    .find((step) => step.id === stepId);
-
-  currentStep.value = updatedStep || null;
 }
 
 // 4. SUPPRIMER
@@ -184,34 +149,7 @@ async function deleteStep() {
   }
 }
 
-async function deleteStepFile() {
-  if (!currentStepFile.value || !currentStep.value) return;
-
-  const stepId = currentStep.value.id;
-  const fileId = currentStepFile.value.id;
-
-  try {
-    await $fetch(`${baseURL}/api/steps/${stepId}/files/${fileId}`, {
-      method: "DELETE",
-    });
-
-    isStepFileDeleteModalOpen.value = false;
-    currentStepFile.value = null;
-
-    await refresh();
-
-    updateCurrentStep(stepId!);
-  } catch (e: any) {
-    formatAndDisplayErrors(e);
-  }
-}
-
 // 5. HELPERS
-function getFileCountByDirection(step: Step, direction: "IN" | "OUT"): number {
-  return (
-    step.possibleFiles?.filter((f) => f.direction === direction).length || 0
-  );
-}
 
 function formatAndDisplayErrors(e: any) {
   let errorTitle = "Erreur";
@@ -261,7 +199,7 @@ function formatAndDisplayErrors(e: any) {
         <h1 class="text-3xl font-bold">Catalogue JCL</h1>
         <p>Définition physique des chaînes et programmes.</p>
       </div>
-      <UButton icon="i-lucide-plus" size="lg" @click="isChainModalOpen = true">
+      <UButton icon="i-lucide-plus" size="md" @click="isChainModalOpen = true">
         Nouvelle Chaîne
       </UButton>
     </div>
@@ -283,23 +221,23 @@ function formatAndDisplayErrors(e: any) {
               }}</UBadge>
               <span class="font-medium">{{ chain.description }}</span>
             </div>
-            <div>
+            <div class="flex justify-items-center gap-2">
               <UButton
-                size="xs"
+                size="sm"
                 color="neutral"
                 variant="ghost"
                 icon="i-lucide-plus"
+                label="Ajouter Step"
                 @click="openStepModal(chain)"
               >
-                Ajouter Step
               </UButton>
               <UButton
-                size="xs"
+                size="sm"
                 color="error"
                 variant="ghost"
                 icon="i-lucide-trash"
-                @click="confirmDeleteChain(chain)"
                 label="Delete"
+                @click="confirmDeleteChain(chain)"
               />
             </div>
           </div>
@@ -331,7 +269,7 @@ function formatAndDisplayErrors(e: any) {
 
                   <div class="ml-2 text-center">
                     <p class="text-xl font-bold">
-                      {{ getFileCountByDirection(step, "IN") }}
+                      {{ getTotalFilestepByDirection(step, "IN") }}
                     </p>
                     <p class="text-sm font-medium text-muted">
                       Entrées (Input)
@@ -349,7 +287,7 @@ function formatAndDisplayErrors(e: any) {
 
                   <div class="ml-2 text-center">
                     <p class="text-xl font-bold">
-                      {{ getFileCountByDirection(step, "OUT") }}
+                      {{ getTotalFilestepByDirection(step, "OUT") }}
                     </p>
                     <p class="text-sm font-medium text-muted">
                       Sorties (Output)
@@ -360,14 +298,14 @@ function formatAndDisplayErrors(e: any) {
               <div class="flex justify-start gap-2 md:justify-end">
                 <UButton
                   size="sm"
-                  color="primary"
-                  variant="solid"
+                  color="neutral"
+                  variant="ghost"
                   icon="i-lucide-file-stack"
                   @click="manageFiles(step)"
                   label="Fichiers"
                 />
                 <UButton
-                  size="xs"
+                  size="sm"
                   color="error"
                   variant="ghost"
                   icon="i-lucide-trash"
@@ -388,9 +326,14 @@ function formatAndDisplayErrors(e: any) {
         </div>
       </UCard>
     </div>
-
-    <UModal v-model:open="isChainModalOpen" :ui="{ footer: 'justify-end' }">
-      <template #header>Nouvelle Chaîne</template>
+    <!-- isChainModalOpen -->
+    <UModal
+      v-model:open="isChainModalOpen"
+      :ui="{ footer: 'justify-end' }"
+      title="Ajouter une nouvelle chaîne"
+      description=""
+    >
+      <template #description></template>
       <template #body>
         <div class="space-y-4">
           <form @submit.prevent="createChain" class="space-y-4">
@@ -424,8 +367,14 @@ function formatAndDisplayErrors(e: any) {
       </template>
     </UModal>
 
-    <UModal v-model:open="isStepModalOpen" :ui="{ footer: 'justify-end' }">
-      <template #header>Nouveau Step</template>
+    <!-- isStepModalOpen -->
+    <UModal
+      v-model:open="isStepModalOpen"
+      :ui="{ footer: 'justify-end' }"
+      title="Ajouter un nouveau Step"
+      description=""
+    >
+      <template #description></template>
       <template #body>
         <div class="space-y-4">
           <form @submit.prevent="createStep" class="space-y-4">
@@ -459,264 +408,56 @@ function formatAndDisplayErrors(e: any) {
       </template>
     </UModal>
 
-    <UModal
-      v-model:open="isChainDeleteModalOpen"
-      :ui="{ footer: 'justify-end' }"
+    <!-- isChainDeleteModalOpen -->
+    <AppModal
+      v-model="isChainDeleteModalOpen"
+      title="Suppression d'une chaîne"
+      description="Êtes-vous sûr de vouloir supprimer cet élément ?"
+      confirm-label="Oui, supprimer"
+      cancel-label="Non, retour"
+      confirm-color="red"
+      :loading="isLoading"
+      @confirm="deleteChain"
     >
-      <template #header>
-        <UIcon name="i-lucide-triangle-alert" class="size-6 text-primary" />
-        Supprimer la chaîne ?
-      </template>
-      <template #body>
-        <div class="space-y-4">
-          <p>
-            Vous êtes sur le point de supprimer la chaîne
-            <strong>{{ currentChain?.code }}</strong
-            >.
-          </p>
-          <p class="text-sm text-muted">
-            Cette action est irréversible et supprimera tous les steps et
-            configurations associés.
-          </p>
-        </div>
-      </template>
-      <template #footer>
-        <UButton
-          color="neutral"
-          variant="ghost"
-          @click="isChainDeleteModalOpen = false"
-          label="Annuler"
-        >
-        </UButton>
-        <UButton
-          color="error"
-          variant="solid"
-          @click="deleteChain"
-          label="Confirmer la suppression"
-        >
-        </UButton>
-      </template>
-    </UModal>
-
-    <UModal
-      v-model:open="isStepDeleteModalOpen"
-      :ui="{ footer: 'justify-end' }"
-    >
-      <template #header>
-        <UIcon name="i-lucide-triangle-alert" class="size-6 text-primary" />
-        Supprimer le step ?
-      </template>
-      <template #body>
-        <div class="space-y-4">
-          <p>
-            Vous êtes sur le point de supprimer le step
-            <strong>{{ currentStep?.name }}</strong
-            >.
-          </p>
-          <p class="text-sm text-muted">
-            Cette action est irréversible et supprimera tous les steps et
-            configurations associés.
-          </p>
-        </div>
-      </template>
-      <template #footer>
-        <UButton
-          color="neutral"
-          variant="ghost"
-          @click="isStepDeleteModalOpen = false"
-          label="Annuler"
-        >
-        </UButton>
-        <UButton
-          color="error"
-          variant="solid"
-          @click="deleteStep"
-          label="Confirmer la suppression"
-        >
-        </UButton>
-      </template>
-    </UModal>
-
-    <UModal
-      v-model:open="isStepFileDeleteModalOpen"
-      class="z-50"
-      :ui="{ footer: 'justify-end' }"
-    >
-      <template #header>
-        <UIcon
-          name="i-lucide-triangle-alert"
-          class="size-6 text-primary"
-        />
-        Supprimer le fichier de l'étape ?
-      </template>
-      <template #body>
-        <div class="space-y-4">
-          <p>
-            Vous êtes sur le point de supprimer du step <span class="text-primary font-bold">{{  currentStep?.name }}</span> le fichier suivant : </P>
-            <ul class="list-disc ml-5">
-              <li>{{ currentStepFile?.logicalName }}</li>
-              <li v-if="currentStepFile?.defaultPhysicalName">{{ currentStepFile?.defaultPhysicalName }}</li>
-            </ul>
-          
-          <p class="text-sm text-muted">
-            Cette action est irréversible et supprimera tous le fichier
-            associés.
-          </p>
-        </div>
-      </template>
-      <template #footer>
-        <UButton
-          color="neutral"
-          variant="ghost"
-          @click="isStepFileDeleteModalOpen = false"
-          label="Annuler"
-        >
-        </UButton>
-        <UButton
-          color="error"
-          variant="solid"
-          @click="deleteStepFile"
-          label="Confirmer la suppression"
-        >
-        </UButton>
-      </template>
-    </UModal>
-
-    <USlideover
-      v-model:open="isFileSlideoverOpen"
-      :ui="{ content: 'w-screen !max-w-lg' }"
-    >
-      <template #title>
-        Fichiers du Step
-        <p class="text-primary font-mono text-sm mt-1">
-          {{ currentStep?.name }}
+      <div class="space-y-4">
+        <p>
+          <strong class="text-error">{{ currentChain?.code }}</strong>
         </p>
-      </template>
-      <template #body>
-        <div class="flex flex-col gap-5">
-          <div
-            class="p-4 rounded-md border bg-elevated border-default space-y-3"
-          >
-            <div class="text-xs font-bold uppercase text-muted tracking-wider">
-              Ajouter un fichier
-            </div>
 
-            <div class="flex gap-2">
-              <UFormField class="w-18" label="direction">
-                <USelect
-                  v-model="newFile.direction"
-                  :items="['IN', 'OUT']"
-                  class="w-full"
-                />
-              </UFormField>
-              <UFormField class="flex-1" label="Logical name">
-                <UInput
-                  v-model="newFile.logicalName"
-                  placeholder="ex : BECT"
-                  class="w-full"
-                />
-              </UFormField>
-            </div>
-            <UFormField class="flex-1" label="Physical name">
-              <UInput
-                class="w-full"
-                v-model="newFile.defaultPhysicalName"
-                placeholder="ex: SPE.GJ01005"
-              />
-            </UFormField>
-            <UFormField class="flex-1" label="Copy for this file">
-              <UInput
-                class="w-full"
-                v-model="newFile.defaultCopybook"
-                placeholder="ex: CFDP008R"
-              />
-            </UFormField>
+        <p class="text-sm text-muted">
+          Cette action est irréversible et supprimera tous les steps et
+          configurations associés.
+        </p>
+      </div>
+    </AppModal>
 
-            <UButton block icon="i-lucide-plus" @click="createFileStep">
-              Ajouter le fichier
-            </UButton>
-          </div>
+    <!-- isStepDeleteModalOpen -->
+    <AppModal
+      v-model="isStepDeleteModalOpen"
+      title="Suppression d'un STEP"
+      description="Êtes-vous sûr de vouloir supprimer cet élément ?"
+      confirm-label="Oui, supprimer"
+      cancel-label="Non, retour"
+      confirm-color="red"
+      :loading="isLoading"
+      @confirm="deleteStep"
+    >
+      <div class="space-y-4">
+        <p>
+          <strong class="text-error">{{ currentStep?.name }}</strong>
+        </p>
 
-          <USeparator orientation="horizontal" />
-          <div class="space-y-2">
-            <div
-              v-for="file in currentStep?.possibleFiles"
-              :key="file.id"
-              class="p-3 border rounded-md text-sm relative group"
-              :class="
-                file.direction === 'IN' ? 'border-primary ' : 'border-secondary'
-              "
-            >
-              <div class="flex items-center gap-5">
-                <!-- Icon et IN OUT -->
-                <div class="flex gap-2 w-18 shrink-0 items-center">
-                  <UIcon
-                    :name="
-                      file.direction === 'IN'
-                        ? 'i-lucide-arrow-down-right'
-                        : 'i-lucide-arrow-up-right'
-                    "
-                    class="size-8"
-                    :color="file.direction === 'IN' ? 'primary' : 'secondary'"
-                  />
-                  <UBadge
-                    size="md"
-                    class=""
-                    :color="file.direction === 'IN' ? 'primary' : 'secondary'"
-                    variant="soft"
-                  >
-                    {{ file.direction }}
-                  </UBadge>
-                </div>
+        <p class="text-sm text-muted">
+          Cette action est irréversible et supprimera tous les steps et
+          configurations associés.
+        </p>
+      </div>
+    </AppModal>
 
-                <!-- Logicalname et defaultPhysicalName -->
-                <div class="flex-1 min-w-0">
-                  <div class="font-medium">
-                    <span>{{ file.logicalName }}</span>
-                  </div>
-
-                  <div
-                    class="text-muted text-xs truncate uppercase tracking-wider"
-                  >
-                    {{
-                      file.defaultPhysicalName || "Pas de fichier par défaut"
-                    }}
-                  </div>
-                </div>
-
-                <!-- Copybook et suppression -->
-                <div class="flex items-center gap-2 shrink-1">
-                  <UTooltip text="Copybook">
-                    <UButton
-                      size="xs"
-                      color="neutral"
-                      variant="subtle"
-                      class="w-22"
-                      icon="i-lucide-book-copy"
-                      :label="file.defaultCopybook || 'NO CPY'"
-                    />
-                  </UTooltip>
-                  <UButton
-                    size="xs"
-                    color="error"
-                    variant="ghost"
-                    icon="i-lucide-trash"
-                    @click="confirmDeleteStepFile(file)"
-                    label="Delete"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <UEmpty
-              v-if="!currentStep?.possibleFiles?.length"
-              icon="i-lucide-file"
-              title="Aucun fichier configuré."
-              description="It looks like you haven't added any file to this step. Create one to get started."
-            />
-          </div>
-        </div>
-      </template>
-    </USlideover>
+    <DashboardComptaStepFilesManager
+      v-model:open="isFileSlideoverOpen"
+      :step="currentStep"
+      @refresh="refresh"
+    />
   </div>
 </template>

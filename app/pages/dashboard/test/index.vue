@@ -18,6 +18,19 @@ const { data: movements, refresh: refreshMovements } = await useFetch<
 >(`${baseURL}/api/configurations/movements`);
 
 const selectedMovementId = ref<number | null>(null);
+
+// DEBUG
+const showTestModal = ref(false);
+const isLoading = ref(false);
+
+async function handleTestResult() {
+  isLoading.value = true;
+
+  await new Promise((resolve) => setTimeout(resolve, 2000));
+
+  isLoading.value = false;
+  showTestModal.value = false;
+}
 </script>
 
 <template>
@@ -46,6 +59,14 @@ const selectedMovementId = ref<number | null>(null);
             size="sm"
             variant="outline"
           />
+          <UButton
+            icon="i-lucide-bug"
+            label="Test Modal"
+            size="sm"
+            variant="outline"
+            color="error"
+            @click="showTestModal = true"
+          />
         </template>
       </UDashboardToolbar>
     </template>
@@ -70,6 +91,19 @@ const selectedMovementId = ref<number | null>(null);
           <UIcon name="i-lucide-chevrons-right" size="32" class="text-muted" />
         </div>
       </UCard>
+
+      <AppModal
+        v-model="showTestModal"
+        title="Suppression du compte"
+        description="Êtes-vous sûr de vouloir supprimer cet élément ?"
+        confirm-label="Oui, supprimer"
+        cancel-label="Non, retour"
+        confirm-color="red"
+        :loading="isLoading"
+        @confirm="handleTestResult"
+      >
+        <p>Cette action est définitive.</p>
+      </AppModal>
     </template>
   </UDashboardPanel>
 </template>
