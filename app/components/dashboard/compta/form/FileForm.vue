@@ -23,14 +23,14 @@ function handleSubmit() {
       </div>
 
       <div class="flex gap-2">
-        <UFormField class="w-20" label="direction">
+        <UFormField class="w-20" label="direction" required>
           <USelect
             v-model="newFile.direction"
             :items="['IN', 'OUT']"
             class="w-full"
           />
         </UFormField>
-        <UFormField class="flex-1" label="Logical name">
+        <UFormField class="flex-1" label="Logical name" required>
           <UInput
             v-model="newFile.logicalName"
             placeholder="ex : BECT"
@@ -38,14 +38,14 @@ function handleSubmit() {
           />
         </UFormField>
       </div>
-      <UFormField class="flex-1" label="Physical name">
+      <UFormField class="flex-1" label="Physical name" hint="Optional">
         <UInput
           v-model="newFile.defaultPhysicalName"
           class="w-full"
           placeholder="ex: SPE.GJ01005"
         />
       </UFormField>
-      <UFormField class="flex-1" label="Copy for this file">
+      <UFormField class="flex-1" label="Copy for this file" hint="Recommanded">
         <UInput
           v-model="newFile.defaultCopybook"
           class="w-full"

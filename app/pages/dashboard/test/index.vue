@@ -449,13 +449,19 @@ async function saveRule() {
       @confirm="createMovement"
     >
       <form @submit.prevent="createMovement" class="space-y-4">
-        <UFormField label="Code Mouvement">
-          <UInput v-model="newMovement.code" placeholder="AA00" autofocus />
+        <UFormField label="Code Mouvement" required>
+          <UInput
+            v-model="newMovement.code"
+            placeholder="AA00"
+            class="w-full"
+            autofocus
+          />
         </UFormField>
-        <UFormField label="Description">
+        <UFormField label="Description" hint="Optional">
           <UInput
             v-model="newMovement.description"
             placeholder="Rattrapage AA00..."
+            class="w-full"
           />
         </UFormField>
       </form>

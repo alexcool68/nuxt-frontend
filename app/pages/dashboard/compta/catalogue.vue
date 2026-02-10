@@ -326,6 +326,7 @@ function formatAndDisplayErrors(e: any) {
         </div>
       </UCard>
     </div>
+
     <!-- isChainModalOpen -->
     <AppModal
       v-model="isChainModalOpen"
@@ -335,26 +336,26 @@ function formatAndDisplayErrors(e: any) {
     >
       <!-- <template #description></template> -->
       <!-- <template #body> -->
-      <div class="space-y-4">
-        <form @submit.prevent="createChain" class="space-y-4">
-          <UFormField label="Code JCL" help="Exemple : GJ01">
-            <UInput
-              v-model="newChain.code"
-              placeholder="GJ..."
-              autofocus
-              class="w-full"
-            />
-          </UFormField>
+      <!-- <div class="space-y-4"> -->
+      <form @submit.prevent="createChain" class="space-y-4">
+        <UFormField label="Code JCL" help="Exemple : GJ01" required>
+          <UInput
+            v-model="newChain.code"
+            placeholder="GJ..."
+            autofocus
+            class="w-full"
+          />
+        </UFormField>
 
-          <UFormField label="Description">
-            <UInput
-              v-model="newChain.description"
-              placeholder="Traitement Comptable..."
-              class="w-full"
-            />
-          </UFormField>
-        </form>
-      </div>
+        <UFormField label="Description" hint="Optional">
+          <UInput
+            v-model="newChain.description"
+            placeholder="Traitement Comptable..."
+            class="w-full"
+          />
+        </UFormField>
+      </form>
+      <!-- </div> -->
       <!-- </template> -->
       <template #footer>
         <UButton
@@ -378,14 +379,15 @@ function formatAndDisplayErrors(e: any) {
       <!-- <template #body> -->
       <div class="space-y-4">
         <form @submit.prevent="createStep" class="space-y-4">
-          <UFormField label="Ordre (Rank)">
+          <UFormField label="Ordre (Rank)" required>
             <UInput v-model="newStep.rank" type="number" />
           </UFormField>
 
           <UFormField
             label="Nom du Programme"
             help="Nom exact du PGM"
-            class="flex-1"
+            class="w-full"
+            required
           >
             <UInput
               v-model="newStep.name"

@@ -166,8 +166,9 @@ function formatAndDisplayErrors(e: any) {
     <USlideover
       v-model:open="isOpen"
       :ui="{ content: 'w-screen !max-w-lg' }"
-      description="Slideover for handling the File Steps"
+      description=""
     >
+      <template #description></template>
       <template #title>
         Fichiers du Step
         <p class="text-primary font-mono text-sm mt-1">
