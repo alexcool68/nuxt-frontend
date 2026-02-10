@@ -35,10 +35,12 @@ const newStep = ref({ name: "", rank: 10, chainId: 0 });
 
 const currentStep = ref<Step | null>(null);
 const currentChain = ref<Chain | null>(null);
-
+// Le step nest pas supprimer la premiere fois mais apres OK, bizzare ....
 watch(
   chains,
   (newChains) => {
+    console.log("currentStep.value", currentStep.value);
+
     if (currentStep.value && newChains) {
       const updatedStep = newChains
         .flatMap((chain) => chain.steps)
@@ -121,10 +123,10 @@ async function deleteChain() {
       method: "DELETE",
     });
 
+    await refresh();
+
     isChainDeleteModalOpen.value = false;
     currentChain.value = null;
-
-    await refresh();
   } catch (e: any) {
     formatAndDisplayErrors(e);
   }
@@ -140,10 +142,10 @@ async function deleteStep() {
       method: "DELETE",
     });
 
+    await refresh();
+
     isStepDeleteModalOpen.value = false;
     currentStep.value = null;
-
-    await refresh();
   } catch (e: any) {
     formatAndDisplayErrors(e);
   }
