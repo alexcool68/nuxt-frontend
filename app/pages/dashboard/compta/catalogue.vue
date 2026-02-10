@@ -39,12 +39,10 @@ const currentChain = ref<Chain | null>(null);
 watch(
   chains,
   (newChains) => {
-    console.log("currentStep.value", currentStep.value);
-
     if (currentStep.value && newChains) {
       const updatedStep = newChains
         .flatMap((chain) => chain.steps)
-        .find((step) => step.id === currentStep.value!.id);
+        .find((step) => step.id === currentStep.value?.id);
       currentStep.value = updatedStep || null;
     }
   },
@@ -329,35 +327,35 @@ function formatAndDisplayErrors(e: any) {
       </UCard>
     </div>
     <!-- isChainModalOpen -->
-    <UModal
-      v-model:open="isChainModalOpen"
+    <AppModal
+      v-model="isChainModalOpen"
       :ui="{ footer: 'justify-end' }"
-      title="Ajouter une nouvelle chaîne"
-      description=""
+      title="Add a new chain"
+      description="Please fill the form below"
     >
-      <template #description></template>
-      <template #body>
-        <div class="space-y-4">
-          <form @submit.prevent="createChain" class="space-y-4">
-            <UFormField label="Code JCL" help="Exemple : GJ01">
-              <UInput
-                v-model="newChain.code"
-                placeholder="GJ..."
-                autofocus
-                class="w-full"
-              />
-            </UFormField>
+      <!-- <template #description></template> -->
+      <!-- <template #body> -->
+      <div class="space-y-4">
+        <form @submit.prevent="createChain" class="space-y-4">
+          <UFormField label="Code JCL" help="Exemple : GJ01">
+            <UInput
+              v-model="newChain.code"
+              placeholder="GJ..."
+              autofocus
+              class="w-full"
+            />
+          </UFormField>
 
-            <UFormField label="Description">
-              <UInput
-                v-model="newChain.description"
-                placeholder="Traitement Comptable..."
-                class="w-full"
-              />
-            </UFormField>
-          </form>
-        </div>
-      </template>
+          <UFormField label="Description">
+            <UInput
+              v-model="newChain.description"
+              placeholder="Traitement Comptable..."
+              class="w-full"
+            />
+          </UFormField>
+        </form>
+      </div>
+      <!-- </template> -->
       <template #footer>
         <UButton
           color="neutral"
@@ -367,38 +365,38 @@ function formatAndDisplayErrors(e: any) {
         >
         <UButton @click="createChain">Créer</UButton>
       </template>
-    </UModal>
+    </AppModal>
 
     <!-- isStepModalOpen -->
-    <UModal
-      v-model:open="isStepModalOpen"
+    <AppModal
+      v-model="isStepModalOpen"
       :ui="{ footer: 'justify-end' }"
-      title="Ajouter un nouveau Step"
-      description=""
+      title="Add a new step"
+      description="Please select a rank and a name for this step"
     >
-      <template #description></template>
-      <template #body>
-        <div class="space-y-4">
-          <form @submit.prevent="createStep" class="space-y-4">
-            <UFormField label="Ordre (Rank)">
-              <UInput v-model="newStep.rank" type="number" />
-            </UFormField>
+      <!-- <template #description></template> -->
+      <!-- <template #body> -->
+      <div class="space-y-4">
+        <form @submit.prevent="createStep" class="space-y-4">
+          <UFormField label="Ordre (Rank)">
+            <UInput v-model="newStep.rank" type="number" />
+          </UFormField>
 
-            <UFormField
-              label="Nom du Programme"
-              help="Nom exact du PGM"
-              class="flex-1"
-            >
-              <UInput
-                v-model="newStep.name"
-                placeholder="GJ01005"
-                autofocus
-                class="w-full"
-              />
-            </UFormField>
-          </form>
-        </div>
-      </template>
+          <UFormField
+            label="Nom du Programme"
+            help="Nom exact du PGM"
+            class="flex-1"
+          >
+            <UInput
+              v-model="newStep.name"
+              placeholder="GJ01005"
+              autofocus
+              class="w-full"
+            />
+          </UFormField>
+        </form>
+      </div>
+      <!-- </template> -->
       <template #footer>
         <UButton
           color="neutral"
@@ -408,7 +406,7 @@ function formatAndDisplayErrors(e: any) {
         >
         <UButton @click="createStep">Ajouter</UButton>
       </template>
-    </UModal>
+    </AppModal>
 
     <!-- isChainDeleteModalOpen -->
     <AppModal

@@ -117,8 +117,8 @@ function formatAndDisplayErrors(e: any) {
 
 <template>
   <div>
-    <UModal
-      v-model:open="isStepFileDeleteModalOpen"
+    <AppModal
+      v-model="isStepFileDeleteModalOpen"
       class="z-50"
       :ui="{ footer: 'justify-end' }"
       description="Modal for delete a File Step"
@@ -127,26 +127,25 @@ function formatAndDisplayErrors(e: any) {
         <UIcon name="i-lucide-triangle-alert" class="size-6 text-primary" />
         Supprimer le fichier de l'étape ?
       </template>
-      <template #body>
-        <div class="space-y-4">
-          <p>
-            Vous êtes sur le point de supprimer du step
-            <span class="font-bold text-primary">{{ step?.name }}</span> le
-            fichier suivant :
-          </p>
-          <ul class="ml-5 list-disc">
-            <li>Logical name : {{ currentStepFile?.logicalName }}</li>
-            <li v-if="currentStepFile?.defaultPhysicalName">
-              Physical name : {{ currentStepFile?.defaultPhysicalName }}
-            </li>
-          </ul>
+      <!-- <template #body> -->
+      <div class="space-y-4">
+        <p>
+          Vous êtes sur le point de supprimer du step
+          <span class="font-bold text-primary">{{ step?.name }}</span> le
+          fichier suivant :
+        </p>
+        <ul class="ml-5 list-disc">
+          <li>Logical name : {{ currentStepFile?.logicalName }}</li>
+          <li v-if="currentStepFile?.defaultPhysicalName">
+            Physical name : {{ currentStepFile?.defaultPhysicalName }}
+          </li>
+        </ul>
 
-          <p class="text-sm text-muted">
-            Cette action est irréversible et supprimera tous le fichier
-            associés.
-          </p>
-        </div>
-      </template>
+        <p class="text-sm text-muted">
+          Cette action est irréversible et supprimera tous le fichier associés.
+        </p>
+      </div>
+      <!-- </template> -->
       <template #footer>
         <UButton
           color="neutral"
@@ -162,7 +161,7 @@ function formatAndDisplayErrors(e: any) {
           label="Confirmer la suppression"
         />
       </template>
-    </UModal>
+    </AppModal>
 
     <USlideover
       v-model:open="isOpen"

@@ -44,7 +44,6 @@ const isRuleModalOpen = ref(false);
 
 // Forms
 const newMovement = ref({ code: "", description: "" });
-const selectedChainToAdd = ref<number | undefined>(undefined);
 const newRule = ref({ message: "", fixInstruction: "", movementStepFileId: 0 });
 
 // Context pour la règle
@@ -73,10 +72,8 @@ async function createMovement() {
   }
 }
 
-async function addChainToMovement() {
-  if (!selectedMovementId.value || selectedChainToAdd.value === undefined)
-    return;
-  console.log(selectedMovement.value);
+async function handleAddChainToMovement(chainId: number | undefined) {
+  if (!selectedMovementId.value || chainId === undefined) return;
   try {
     // On calcule l'ordre (dernier + 10)
     const currentOrders = selectedMovement.value?.chains.length || 0;
@@ -85,11 +82,10 @@ async function addChainToMovement() {
       method: "POST",
       body: {
         movementId: selectedMovementId.value,
-        chainId: selectedChainToAdd.value,
+        chainId: chainId,
         executionOrder: (currentOrders + 1) * 10,
       },
     });
-    selectedChainToAdd.value = undefined;
     await refreshMovements();
   } catch (e: any) {
     console.log(e);
@@ -262,29 +258,10 @@ async function saveRule() {
         <div
           class="flex items-end gap-4 bg-gray-100 dark:bg-gray-800/50 p-4 rounded-lg"
         >
-          <UFormField label="Ajouter une chaîne au parcours" class="flex-1">
-            <USelect
-              v-model="selectedChainToAdd"
-              placeholder="Sélectionner une chaîne..."
-              :items="
-                catalogChains?.map((c) => ({
-                  label: `${c.code} - ${c.description}`,
-                  value: c.id,
-                })) || []
-              "
-              option-attribute="label"
-              value-attribute="value"
-              class="w-full"
-            />
-          </UFormField>
-          <UButton
-            color="secondary"
-            icon="i-heroicons-plus"
-            :disabled="!selectedChainToAdd"
-            @click="addChainToMovement"
-          >
-            Ajouter
-          </UButton>
+          <DashboardComptaFormAddChainToMovement
+            :items="catalogChains"
+            @submit="handleAddChainToMovement"
+          />
         </div>
 
         <div class="space-y-6">
