@@ -18,7 +18,9 @@ const { status, signOut } = useAuth();
 <template>
   <UHeader>
     <template #left>
-      <NuxtLink to="/"><AppLogo /></NuxtLink>
+      <NuxtLink to="/">
+        <AppLogo />
+      </NuxtLink>
     </template>
 
     <UNavigationMenu :items="items" variant="pill" />
@@ -35,7 +37,11 @@ const { status, signOut } = useAuth();
           color="neutral"
           variant="outline"
           class="hidden lg:inline-flex"
-          @click="() => signOut({ callbackUrl: '/login' })"
+          @click="
+            () => {
+              signOut({ callbackUrl: '/login' });
+            }
+          "
         />
       </div>
       <div v-else>
@@ -87,7 +93,11 @@ const { status, signOut } = useAuth();
           color="neutral"
           variant="subtle"
           block
-          @click="() => signOut({ callbackUrl: '/login' })"
+          @click="
+            () => {
+              signOut({ callbackUrl: '/login' });
+            }
+          "
         />
       </div>
       <div v-else>
