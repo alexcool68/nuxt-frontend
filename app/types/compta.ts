@@ -63,7 +63,11 @@ export interface Rule {
 export interface FileConfig {
   id?: number; // ID de la liaison (movement_step_file)
   stepFileId: number;
+  direction?: "IN" | "OUT";
   logicalName: string; // Pour affichage
+  defaultPhysicalName?: string;
+  overridePhysicalName?: string;
+  overrideLogicalName?: string;
   rules: Rule[];
 }
 
@@ -72,6 +76,7 @@ export interface ConfigStep {
   name: string;
   isActive: boolean; // Calculé : est-ce que ce step est activé pour ce mvt ?
   movementStepId?: number; // ID de la liaison si activé
+  possibleFiles?: FileConfig[];
   files: FileConfig[];
 }
 

@@ -41,7 +41,7 @@ const availableChains = computed(() => {
 </script>
 
 <template>
-  <UForm @submit.prevent="handleSubmit" class="space-x-4 flex">
+  <UForm @submit.prevent="handleSubmit" class="flex space-x-4">
     <UFormField
       label="Ajouter une chaîne au parcours"
       class="w-full"
@@ -62,6 +62,7 @@ const availableChains = computed(() => {
         class="w-72"
       />
     </UFormField>
+
     <UButton
       color="primary"
       icon="i-lucide-plus"
