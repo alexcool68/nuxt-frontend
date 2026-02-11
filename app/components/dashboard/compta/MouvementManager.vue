@@ -73,7 +73,6 @@ async function removeChainFromMovement(movementChainId: number) {
 }
 
 async function toggleStep(step: ConfigStep) {
-  return;
   if (!props.movement.id) return;
 
   // CAS 1 : On veut ACTIVER (Création du lien)
@@ -111,14 +110,14 @@ const newRule = ref({ message: "", fixInstruction: "", movementStepFileId: 0 });
 
 async function openRuleModal(
   step: ConfigStep,
-  fileCatalogId: number,
+  fileId: number,
   logicalName: string,
 ) {
   if (!step.movementStepId) return alert("Activez le step d'abord !");
 
   // 1. On s'assure que le fichier est "monitored" (création liaison)
   // En vrai prod, on vérifierait si 'files' contient déjà ce fileCatalogId
-  let configId = step.files.find((f) => f.stepFileId === fileCatalogId)?.id;
+  let configId = step.files.find((f) => f.stepFileId === fileId)?.id;
 
   if (!configId) {
     try {
@@ -126,7 +125,7 @@ async function openRuleModal(
         method: "POST",
         body: {
           movementStepId: step.movementStepId,
-          stepFileId: fileCatalogId,
+          stepFileId: fileId,
           isMonitored: true,
         },
       });
@@ -261,13 +260,6 @@ async function saveRule() {
                   Configuration Fichiers & Règles
                 </p>
 
-                <UEmpty
-                  v-if="step.files.length === 0"
-                  icon="i-lucide-pencil-ruler"
-                  description="No rules defined for this step yet."
-                  variant="soft"
-                />
-
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <!-- Colonne Fichiers IN -->
                   <div class="space-y-3">
@@ -300,19 +292,19 @@ async function saveRule() {
                           >{{ file.defaultPhysicalName }}</span
                         >
                       </div>
-                      <UButton
+                      <!-- <UButton
                         size="xs"
                         variant="ghost"
                         icon="i-lucide-plus"
                         label="Règle"
-                      />
-                      <!-- <UButton
+                      /> -->
+                      <UButton
                         size="xs"
                         variant="ghost"
                         icon="i-heroicons-plus"
-                        @click="openRuleModal(step, file.id, file.logicalName)"
+                        @click="openRuleModal(step, file.id!, file.logicalName)"
                         label="Règle"
-                      /> -->
+                      />
                     </div>
                   </div>
 
@@ -365,12 +357,23 @@ async function saveRule() {
                   </div>
                 </div>
 
+                <UEmpty
+                  v-if="step.files.length === 0"
+                  icon="i-lucide-pencil-ruler"
+                  description="No rules defined for this step yet."
+                  variant="soft"
+                />
+                <!-- TODO -->
                 <div v-for="file in step.files" :key="file.id">
+                  <div class="flex-1">
+                    {{ file.logicalName || "Fichier ID " + file.stepFileId }}
+                  </div>
+
                   <div v-for="rule in file.rules" :key="rule.id">
                     <UAlert
                       orientation="horizontal"
                       color="neutral"
-                      variant="subtle"
+                      variant="soft"
                       :ui="{
                         icon: 'size-8',
                       }"
