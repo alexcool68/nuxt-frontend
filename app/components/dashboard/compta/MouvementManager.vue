@@ -1,18 +1,14 @@
 <script setup lang="ts">
 import type { CatalogChain, ConfigStep, Movement } from "~/types/compta";
+import AddRuleToStepfile from "./form/AddRuleToStepfile.vue";
 
 const props = defineProps<{
   movement: Movement;
 }>();
 
-const currentFileContext = ref<{
-  logicalName: string;
-  stepName: string;
-} | null>(null);
-
 const emits = defineEmits(["close"]);
 
-const loading = ref(false);
+//const loading = ref(false);
 
 const config = useRuntimeConfig();
 const baseURL = config.public.authBaseUrl || "http://localhost:3333";
@@ -25,11 +21,18 @@ const { data: catalogChains } = await useFetch<CatalogChain[]>(
   `${baseURL}/api/chains`,
 );
 
-const isRuleModalOpen = ref(false);
+const isAddRuleModalOpen = ref(false);
+
+// const currentFileContext = ref<{
+//   logicalName: string;
+//   stepName: string;
+// } | null>(null);
 
 const selectedMovement = computed(() =>
   movements.value?.find((m) => m.id === props.movement.id),
 );
+
+// FONCTIONS
 
 async function addChainToMovement(chainId: number | undefined) {
   if (!props.movement || chainId === undefined) return;
@@ -72,7 +75,7 @@ async function removeChainFromMovement(movementChainId: number) {
   }
 }
 
-async function toggleStep(step: ConfigStep) {
+async function toggleStepFromMovement(step: ConfigStep) {
   if (!props.movement.id) return;
 
   // CAS 1 : On veut ACTIVER (Création du lien)
@@ -87,7 +90,7 @@ async function toggleStep(step: ConfigStep) {
       });
       await refreshMovements();
     } catch (e) {
-      console.error(e);
+      console.error("Erreur lors de l'activation du step", e);
     }
   }
   // CAS 2 : On veut DÉSACTIVER (Suppression du lien)
@@ -106,9 +109,7 @@ async function toggleStep(step: ConfigStep) {
   }
 }
 
-const newRule = ref({ message: "", fixInstruction: "", movementStepFileId: 0 });
-
-async function openRuleModal(
+async function addStepfileToStep(
   step: ConfigStep,
   fileId: number,
   logicalName: string,
@@ -132,28 +133,42 @@ async function openRuleModal(
       configId = res.id;
       await refreshMovements();
     } catch (e: any) {
-      return;
+      console.log(e);
     }
   }
-
-  // 2. On ouvre la modale
-  newRule.value = {
-    message: "",
-    fixInstruction: "",
-    movementStepFileId: configId!,
-  };
-  currentFileContext.value = { logicalName, stepName: step.name };
-  isRuleModalOpen.value = true;
 }
 
-async function saveRule() {
+async function removeStepfileFromStep(step: ConfigStep, fileId: number) {
+  if (!step.movementStepId) return alert("Activez le step d'abord !");
+  if (!fileId) return;
+
+  try {
+    const res = await $fetch<any>(
+      `${baseURL}/api/links/step/${step.movementStepId}/files/${fileId}`,
+      {
+        method: "DELETE",
+      },
+    );
+    await refreshMovements();
+  } catch (e: any) {
+    return;
+  }
+}
+
+const newRule = ref({ message: "", fixInstruction: "" });
+
+//---------------------
+
+async function addRuleToStepfile(movementStepFileId: number) {
+  if (!movementStepFileId) return;
   try {
     await $fetch(`${baseURL}/api/rules`, {
       method: "POST",
-      body: newRule.value,
+      body: { ...newRule.value, movementStepFileId: movementStepFileId },
     });
-    isRuleModalOpen.value = false;
+    newRule.value = { message: "", fixInstruction: "" };
     await refreshMovements();
+    isAddRuleModalOpen.value = false;
   } catch (e) {
     console.error(e);
   }
@@ -232,7 +247,7 @@ async function saveRule() {
                 <div class="flex items-center gap-3">
                   <USwitch
                     :model-value="step.isActive"
-                    @update:model-value="toggleStep(step)"
+                    @update:model-value="toggleStepFromMovement(step)"
                     color="primary"
                   />
                   <span class="font-mono font-bold"
@@ -292,18 +307,14 @@ async function saveRule() {
                           >{{ file.defaultPhysicalName }}</span
                         >
                       </div>
-                      <!-- <UButton
-                        size="xs"
-                        variant="ghost"
-                        icon="i-lucide-plus"
-                        label="Règle"
-                      /> -->
                       <UButton
                         size="xs"
                         variant="ghost"
                         icon="i-heroicons-plus"
-                        @click="openRuleModal(step, file.id!, file.logicalName)"
-                        label="Règle"
+                        @click="
+                          addStepfileToStep(step, file.id!, file.logicalName)
+                        "
+                        label="Stepfile"
                       />
                     </div>
                   </div>
@@ -343,16 +354,12 @@ async function saveRule() {
                       <UButton
                         size="xs"
                         variant="ghost"
-                        icon="i-lucide-plus"
-                        label="Règle"
-                      />
-                      <!-- <UButton
-                        size="xs"
-                        variant="ghost"
                         icon="i-heroicons-plus"
-                        @click="openRuleModal(step, file.id, file.logicalName)"
-                        label="Règle"
-                      /> -->
+                        @click="
+                          addStepfileToStep(step, file.id!, file.logicalName)
+                        "
+                        label="Stepfile"
+                      />
                     </div>
                   </div>
                 </div>
@@ -365,10 +372,6 @@ async function saveRule() {
                 />
                 <!-- TODO -->
                 <div v-for="file in step.files" :key="file.id">
-                  <div class="flex-1">
-                    {{ file.logicalName || "Fichier ID " + file.stepFileId }}
-                  </div>
-
                   <div v-for="rule in file.rules" :key="rule.id">
                     <UAlert
                       orientation="horizontal"
@@ -379,20 +382,24 @@ async function saveRule() {
                       }"
                       :actions="[
                         {
-                          label: 'Add',
+                          label: 'Add rule',
                           color: 'primary',
                           variant: 'outline',
                           size: 'sm',
                           icon: 'i-lucide-circle-plus',
-                          onClick: () => {},
+                          onClick: () => {
+                            isAddRuleModalOpen = true;
+                          },
                         },
                         {
-                          label: 'Delete',
+                          label: 'Remove stepfile',
                           color: 'error',
                           variant: 'ghost',
                           size: 'sm',
                           icon: 'i-lucide-trash',
-                          onClick: () => {},
+                          onClick: () => {
+                            removeStepfileFromStep(step, file.id!);
+                          },
                         },
                       ]"
                     >
@@ -424,67 +431,67 @@ async function saveRule() {
                       </template>
                     </UAlert>
                   </div>
+
+                  <div v-if="file.rules.length === 0">
+                    <UAlert
+                      orientation="horizontal"
+                      color="neutral"
+                      variant="soft"
+                      :ui="{
+                        icon: 'size-8',
+                      }"
+                      :actions="[
+                        {
+                          label: 'Add a rule',
+                          color: 'primary',
+                          variant: 'outline',
+                          size: 'sm',
+                          icon: 'i-lucide-circle-plus',
+                          onClick: () => {
+                            isAddRuleModalOpen = true;
+                          },
+                        },
+                        {
+                          label: 'Remove filestep',
+                          color: 'error',
+                          variant: 'ghost',
+                          size: 'sm',
+                          icon: 'i-lucide-trash',
+                          onClick: () => {
+                            removeStepfileFromStep(step, file.id!);
+                          },
+                        },
+                      ]"
+                    >
+                      <template #title>
+                        <div class="font-bold text-lg tracking-wider mb-3">
+                          {{ file.defaultPhysicalName }}
+                        </div>
+                        <AppModal
+                          v-model="isAddRuleModalOpen"
+                          title="Ajouter une regle"
+                          description="Fill the form below"
+                          confirm-label="Create"
+                          cancel-label="Cancel"
+                          confirm-color="primary"
+                          @confirm="addRuleToStepfile(file.id!)"
+                        >
+                          <AddRuleToStepfile v-model="newRule" />
+                        </AppModal>
+                      </template>
+
+                      <template #description>
+                        <UEmpty
+                          v-if="file.rules.length === 0"
+                          icon="i-lucide-pencil-ruler"
+                          title="Aucune règle configurée."
+                          description="Il semble que vous n'ayez ajouté aucune règle sur ce fichier. Créez-en une pour commencer."
+                          variant="naked"
+                        />
+                      </template>
+                    </UAlert>
+                  </div>
                 </div>
-
-                <!-- <div
-                  v-for="fileConf in step.files"
-                  :key="fileConf.id"
-                  class="flex items-start gap-4 p-3 rounded border"
-                >
-                  <div class="pt-1">
-                    <UIcon
-                      name="i-heroicons-document-text"
-                      class="text-gray-400"
-                    />
-                  </div>
-                  <div class="flex-1">
-                    <div class="font-bold text-sm">
-                      {{
-                        fileConf.logicalName ||
-                        "Fichier ID " + fileConf.stepFileId
-                      }}
-                    </div>
-
-                    <div class="mt-2 space-y-1">
-                      <div
-                        v-for="rule in fileConf.rules"
-                        :key="rule.id"
-                        class="text-xs bg-orange-50 text-orange-800 p-2 rounded border border-orange-100 flex gap-2"
-                      >
-                        <UIcon name="i-heroicons-exclamation-triangle" />
-                        <span>{{ rule.message }}</span>
-                      </div>
-                    </div>
-                  </div>
-                  <UButton
-                    size="xs"
-                    color="neutral"
-                    variant="ghost"
-                    icon="i-heroicons-plus"
-                    @click="
-                      openRuleModal(
-                        step,
-                        fileConf.stepFileId,
-                        fileConf.logicalName,
-                      )
-                    "
-                    label="Règle"
-                  />
-                </div> -->
-
-                <!-- <UButton
-                  v-if="step.files.length === 0"
-                  size="xs"
-                  variant="link"
-                  icon="i-heroicons-plus-circle"
-                  @click="
-                    console.log(
-                      'En prod : Ici on afficherait la liste des fichiers du catalogue pour choisir sur lequel mettre une alerte',
-                    )
-                  "
-                >
-                  Ajouter une règle sur un fichier
-                </UButton> -->
               </div>
             </div>
           </div>

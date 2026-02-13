@@ -41,7 +41,7 @@ const links = [
       icon: "i-lucide-hand-coins",
       to: "/dashboard/compta",
       onSelect: () => {
-        open.value = false;
+        open.value = true;
       },
       type: "trigger",
       children: [
