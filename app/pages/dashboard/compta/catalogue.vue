@@ -1,65 +1,68 @@
 <script setup lang="ts">
 import type { Chain, Step } from "~/types/compta";
-import { watch } from "vue";
+
+import FilesManager from "./components/FilesManager.vue";
+import AddChain from "./forms/AddChain.vue";
+import AddStepToChain from "./forms/AddStepToChain.vue";
 
 useSeoMeta({
   title: "Dashboard - Compta - Catalogue",
   description: "",
 });
 
-// --- STATE ---
+// DIVERS
 const config = useRuntimeConfig();
-const baseURL = config.public.authBaseUrl || "http://localhost:3333"; // Ajuste selon ton .env
 const toast = useToast();
+
+const baseURL = config.public.authBaseUrl || "http://localhost:3333";
 
 // Chargement des données
 const {
   data: chains,
   error,
   refresh,
-} = await useFetch<Chain[]>(`${baseURL}/api/chains`);
+} = await useFetch<Chain[]>(`${baseURL}/api/v1/formatted-chains`);
+
+// loading
+const isLoading = ref(false);
 
 // État des Modales
-const isLoading = ref(false);
 const isChainModalOpen = ref(false);
 const isStepModalOpen = ref(false);
-
 const isChainDeleteModalOpen = ref(false);
 const isStepDeleteModalOpen = ref(false);
-
 const isFileSlideoverOpen = ref(false);
 
 // Données temporaires pour les formulaires
-const newChain = ref({ code: "", description: "" });
-const newStep = ref({ name: "", rank: 10, chainId: 0 });
+const newChain = ref<Partial<Chain>>({ code: "", description: "" });
+const newStep = ref<Partial<Step>>({ chainId: 0, name: "", rank: 10 });
 
-const currentStep = ref<Step | null>(null);
-const currentChain = ref<Chain | null>(null);
-// Le step nest pas supprimer la premiere fois mais apres OK, bizzare ....
-watch(
-  chains,
-  (newChains) => {
-    if (currentStep.value && newChains) {
-      const updatedStep = newChains
-        .flatMap((chain) => chain.steps)
-        .find((step) => step.id === currentStep.value?.id);
-      currentStep.value = updatedStep || null;
-    }
-  },
-  { deep: true },
-);
-// 1. CRÉER
+// Current data
+const currentStep = ref<Step | undefined>(undefined);
+const currentChain = ref<Chain | undefined>(undefined);
+
+// watch for updated step and file
+watch(chains, (newChains) => {
+  if (currentStep.value && newChains) {
+    const updatedStep = newChains
+      .flatMap((chain) => chain.steps)
+      .find((step) => step.id === currentStep.value!.id);
+    currentStep.value = updatedStep;
+  }
+});
+
+// FONCTIONS
 async function createChain() {
   if (!newChain.value.code) return;
 
   try {
-    await $fetch(`${baseURL}/api/chains`, {
+    await $fetch(`${baseURL}/api/v1/chains`, {
       method: "POST",
       body: newChain.value,
     });
 
     isChainModalOpen.value = false;
-    newChain.value = { code: "", description: "" };
+    newChain.value = {};
 
     await refresh();
   } catch (e: any) {
@@ -68,15 +71,20 @@ async function createChain() {
 }
 
 async function createStep() {
-  if (!newStep.value.name) return;
+  if (!newStep.value.chainId) return;
 
   try {
-    await $fetch(`${baseURL}/api/chains/${newStep.value.chainId}/steps`, {
+    await $fetch(`${baseURL}/api/v1/steps`, {
       method: "POST",
-      body: { name: newStep.value.name, rank: newStep.value.rank },
+      body: {
+        chainId: newStep.value.chainId,
+        name: newStep.value.name,
+        rank: newStep.value.rank,
+      },
     });
 
     isStepModalOpen.value = false;
+    newStep.value = {};
 
     await refresh();
   } catch (e: any) {
@@ -84,9 +92,43 @@ async function createStep() {
   }
 }
 
-// 2. OUVRIR MODAL
+async function deleteChain() {
+  if (!currentChain.value) return;
+
+  try {
+    await $fetch(`${baseURL}/api/v1/chains/${currentChain.value.id}`, {
+      method: "DELETE",
+    });
+
+    await refresh();
+
+    isChainDeleteModalOpen.value = false;
+    currentChain.value = undefined;
+  } catch (e: any) {
+    formatAndDisplayErrors(e);
+  }
+}
+
+async function deleteStep() {
+  if (!currentStep.value) return;
+
+  try {
+    await $fetch(`${baseURL}/api/v1/steps/${currentStep.value.id}`, {
+      method: "DELETE",
+    });
+
+    await refresh();
+
+    isStepDeleteModalOpen.value = false;
+    currentStep.value = undefined;
+  } catch (e: any) {
+    formatAndDisplayErrors(e);
+  }
+}
+
+// OUVRIR MODAL
 function openStepModal(chain: Chain) {
-  if (!chain.id) return;
+  if (!chain) return;
 
   newStep.value = {
     name: "",
@@ -97,60 +139,28 @@ function openStepModal(chain: Chain) {
 }
 
 function confirmDeleteChain(chain: Chain) {
+  if (!currentChain) return;
+
   currentChain.value = chain;
   isChainDeleteModalOpen.value = true;
 }
 
 function confirmDeleteStep(step: Step) {
+  if (!currentStep) return;
+
   currentStep.value = step;
   isStepDeleteModalOpen.value = true;
 }
 
-// 3. SLIDEOVER
+// SLIDEOVER
 function manageFiles(step: Step) {
+  if (!currentStep) return;
+
   currentStep.value = step;
   isFileSlideoverOpen.value = true;
 }
 
-// 4. SUPPRIMER
-async function deleteChain() {
-  if (!currentChain.value) return;
-
-  try {
-    await $fetch(`${baseURL}/api/chains/${currentChain.value.id}`, {
-      method: "DELETE",
-    });
-
-    await refresh();
-
-    isChainDeleteModalOpen.value = false;
-    currentChain.value = null;
-  } catch (e: any) {
-    formatAndDisplayErrors(e);
-  }
-}
-
-async function deleteStep() {
-  if (!currentStep.value) return;
-
-  const stepId = currentStep.value.id;
-
-  try {
-    await $fetch(`${baseURL}/api/steps/${stepId}`, {
-      method: "DELETE",
-    });
-
-    await refresh();
-
-    isStepDeleteModalOpen.value = false;
-    currentStep.value = null;
-  } catch (e: any) {
-    formatAndDisplayErrors(e);
-  }
-}
-
-// 5. HELPERS
-
+// HELPERS
 function formatAndDisplayErrors(e: any) {
   let errorTitle = "Erreur";
   let errorDescription = "Une erreur inattendue est survenue.";
@@ -177,12 +187,7 @@ function formatAndDisplayErrors(e: any) {
   });
 }
 </script>
-
 <template>
-  <!-- <div v-if="status === 'pending'" class="space-y-4">
-    <USkeleton class="h-64 w-full" />
-  </div> -->
-
   <div v-if="error">
     <UAlert
       title="Erreur de chargement"
@@ -193,7 +198,8 @@ function formatAndDisplayErrors(e: any) {
     />
   </div>
 
-  <div class="space-y-6 min-h-screen">
+  <div v-else class="space-y-6 min-h-screen">
+    <!-- TITLE -->
     <div class="flex justify-between items-center">
       <div>
         <h1 class="text-3xl font-bold">Catalogue JCL</h1>
@@ -204,6 +210,7 @@ function formatAndDisplayErrors(e: any) {
       </UButton>
     </div>
 
+    <!-- CHAIN EMPTY -->
     <UEmpty
       v-if="chains?.length === 0"
       icon="i-lucide-link-2-off"
@@ -212,7 +219,7 @@ function formatAndDisplayErrors(e: any) {
     />
 
     <div class="grid grid-cols-1 gap-5">
-      <UCard v-for="chain in chains" :key="chain.id">
+      <UCard v-for="chain in chains" :key="chain.id" variant="soft">
         <template #header>
           <div class="flex justify-between items-center">
             <div class="flex items-center gap-5">
@@ -243,7 +250,8 @@ function formatAndDisplayErrors(e: any) {
           </div>
         </template>
 
-        <div v-if="chain.steps?.length" class="space-y-2">
+        <!-- STEP CONTENT -->
+        <div v-if="chain.steps && chain.steps.length" class="space-y-2">
           <UCard v-for="step in chain.steps" :key="step.id">
             <div
               class="grid grid-cols-1 items-center gap-4 md:grid-cols-3 md:gap-5"
@@ -317,6 +325,7 @@ function formatAndDisplayErrors(e: any) {
           </UCard>
         </div>
 
+        <!-- STEP EMPTY -->
         <div v-else class="text-sm text-muted italic text-center py-4">
           <UEmpty
             icon="i-lucide-redo-dot"
@@ -334,36 +343,16 @@ function formatAndDisplayErrors(e: any) {
       title="Add a new chain"
       description="Please fill the form below"
     >
-      <!-- <template #description></template> -->
-      <!-- <template #body> -->
-      <!-- <div class="space-y-4"> -->
-      <form @submit.prevent="createChain" class="space-y-4">
-        <UFormField label="Code JCL" help="Exemple : GJ01" required>
-          <UInput
-            v-model="newChain.code"
-            placeholder="GJ..."
-            autofocus
-            class="w-full"
-          />
-        </UFormField>
+      <AddChain v-model="newChain" @submit="createChain" />
 
-        <UFormField label="Description" hint="Optional">
-          <UInput
-            v-model="newChain.description"
-            placeholder="Traitement Comptable..."
-            class="w-full"
-          />
-        </UFormField>
-      </form>
-      <!-- </div> -->
-      <!-- </template> -->
       <template #footer>
         <UButton
           color="neutral"
           variant="ghost"
           @click="isChainModalOpen = false"
-          >Annuler</UButton
-        >
+          label="Annuler"
+        />
+
         <UButton @click="createChain">Créer</UButton>
       </template>
     </AppModal>
@@ -375,37 +364,15 @@ function formatAndDisplayErrors(e: any) {
       title="Add a new step"
       description="Please select a rank and a name for this step"
     >
-      <!-- <template #description></template> -->
-      <!-- <template #body> -->
-      <div class="space-y-4">
-        <form @submit.prevent="createStep" class="space-y-4">
-          <UFormField label="Ordre (Rank)" required>
-            <UInput v-model="newStep.rank" type="number" />
-          </UFormField>
+      <AddStepToChain v-model="newStep" @submit="createStep" />
 
-          <UFormField
-            label="Nom du Programme"
-            help="Nom exact du PGM"
-            class="w-full"
-            required
-          >
-            <UInput
-              v-model="newStep.name"
-              placeholder="GJ01005"
-              autofocus
-              class="w-full"
-            />
-          </UFormField>
-        </form>
-      </div>
-      <!-- </template> -->
       <template #footer>
         <UButton
           color="neutral"
           variant="ghost"
           @click="isStepModalOpen = false"
-          >Annuler</UButton
-        >
+          label="Annuler"
+        />
         <UButton @click="createStep">Ajouter</UButton>
       </template>
     </AppModal>
@@ -456,7 +423,7 @@ function formatAndDisplayErrors(e: any) {
       </div>
     </AppModal>
 
-    <DashboardComptaStepFilesManager
+    <FilesManager
       v-model:open="isFileSlideoverOpen"
       :step="currentStep"
       @refresh="refresh"

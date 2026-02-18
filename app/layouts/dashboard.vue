@@ -45,14 +45,14 @@ const links = [
       },
       type: "trigger",
       children: [
-        {
-          label: "Movements",
-          exact: true,
-          onSelect: () => {
-            open.value = false;
-          },
-          children: allMovementsLinks,
-        },
+        // {
+        //   label: "Movements",
+        //   exact: true,
+        //   onSelect: () => {
+        //     open.value = false;
+        //   },
+        //   children: allMovementsLinks,
+        // },
         {
           label: "Catalogue",
           to: "/dashboard/compta/catalogue",
@@ -61,14 +61,14 @@ const links = [
             open.value = false;
           },
         },
-        {
-          label: "Configuration",
-          to: "/dashboard/compta/configuration",
-          exact: true,
-          onSelect: () => {
-            open.value = false;
-          },
-        },
+        // {
+        //   label: "Configuration",
+        //   to: "/dashboard/compta/configuration",
+        //   exact: true,
+        //   onSelect: () => {
+        //     open.value = false;
+        //   },
+        // },
         {
           label: "Tests",
           to: "/dashboard/test",

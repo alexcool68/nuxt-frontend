@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import type { StepFile } from "~/types/compta";
+import type { File } from "~/types/compta";
 
 const props = defineProps<{
-  files?: StepFile[] | null;
+  files?: File[] | null;
 }>();
 
 const sortedFiles = computed(() => {
@@ -21,10 +21,10 @@ const sortedFiles = computed(() => {
 });
 
 const emit = defineEmits<{
-  (e: "delete-file", file: StepFile): void;
+  (e: "delete-file", file: File): void;
 }>();
 
-function deleteFile(file: StepFile) {
+function deleteFile(file: File) {
   emit("delete-file", file);
 }
 </script>

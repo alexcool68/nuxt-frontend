@@ -11,10 +11,8 @@ useSeoMeta({
 
 <template>
   <UPageHero>
-    <!-- <template #top>
-      <HeroBackground />
-      <UPageSection> </UPageSection>
-    </template> -->
-    <template #title> Welcome to my APP !!</template>
+    <template #title>
+      <div>Welcome to my APP !!</div>
+    </template>
   </UPageHero>
 </template>

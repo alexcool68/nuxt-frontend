@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import MouvementManager from "~/components/dashboard/compta/MouvementManager.vue";
 import type { CatalogChain, ConfigStep, Movement } from "~/types/compta";
+import MouvementsManager from "../compta/components/MouvementsManager.vue";
 
 definePageMeta({
   layout: "dashboard",
@@ -16,10 +16,10 @@ const baseURL = config.public.authBaseUrl || "http://localhost:3333";
 
 const { data: movements, refresh: refreshMovements } = await useFetch<
   Movement[]
->(`${baseURL}/api/configurations/movements`);
+>(`${baseURL}/api/v1/movements`);
 
 const { data: catalogChains } = await useFetch<CatalogChain[]>(
-  `${baseURL}/api/chains`,
+  `${baseURL}/api/v1/chains`,
 );
 
 const selectedMovementId = ref<number | null>(null);
@@ -68,7 +68,7 @@ async function addChainToMovement(chainId: number | undefined) {
   try {
     const currentOrders = selectedMovement.value?.chains.length || 0;
 
-    await $fetch(`${baseURL}/api/links/chain`, {
+    await $fetch(`${baseURL}/api/v1/movement/chain`, {
       method: "POST",
       body: {
         movementId: selectedMovementId.value,
@@ -192,7 +192,7 @@ async function saveRule() {
   <div class="flex w-full h-full">
     <!-- PANEL -->
     <UDashboardPanel
-      id="chainMenu"
+      id="chains-menu"
       :default-size="25"
       :min-size="20"
       :max-size="30"
@@ -256,7 +256,7 @@ async function saveRule() {
       </template>
     </UDashboardPanel>
 
-    <MouvementManager
+    <MouvementsManager
       v-if="selectedMovement"
       :movement="selectedMovement"
       @close="selectedMovementId = null"

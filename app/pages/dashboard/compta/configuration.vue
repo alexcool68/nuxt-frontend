@@ -23,7 +23,7 @@ const { data: movements, refresh: refreshMovements } = await useFetch<
   Movement[]
 >(`${baseURL}/api/configurations/movements`);
 const { data: catalogChains } = await useFetch<CatalogChain[]>(
-  `${baseURL}/api/chains`,
+  `${baseURL}/api/v1/chains`,
 );
 
 const selectedMovementId = ref<number | null>(null);

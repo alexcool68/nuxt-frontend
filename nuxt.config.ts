@@ -8,6 +8,13 @@ export default defineNuxtConfig({
 
   css: ["~/assets/css/main.css"],
 
+  ignore: [
+    "pages/**/_*/**",
+    "pages/**/components/**",
+    "pages/**/forms/**",
+    "pages/**/composables/**",
+  ],
+
   routeRules: {
     "/": { prerender: true },
     // "/api/auth/**": {
@@ -39,7 +46,6 @@ export default defineNuxtConfig({
     isEnabled: true,
     disableServerSideAuth: false,
     globalAppMiddleware: true,
-    //baseURL: "authBaseUrl",
     session: {
       enableRefreshPeriodically: false,
       enableRefreshOnWindowFocus: false,

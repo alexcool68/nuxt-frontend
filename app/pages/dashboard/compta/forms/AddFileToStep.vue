@@ -1,10 +1,5 @@
 <script setup lang="ts">
-const newFile = defineModel<{
-  direction: "IN" | "OUT";
-  logicalName: string;
-  defaultPhysicalName: string;
-  defaultCopybook: string;
-}>({ required: true });
+import type { File } from "~/types/compta";
 
 const emit = defineEmits<{
   (e: "submit"): void;
@@ -13,6 +8,8 @@ const emit = defineEmits<{
 function handleSubmit() {
   emit("submit");
 }
+
+const newFile = defineModel<Partial<File>>({ required: true });
 </script>
 
 <template>
@@ -53,9 +50,7 @@ function handleSubmit() {
         />
       </UFormField>
 
-      <UButton block icon="i-lucide-plus" type="submit">
-        Ajouter le fichier
-      </UButton>
+      <UButton block icon="i-lucide-plus" type="submit" label="Ajouter" />
     </div>
   </form>
 </template>

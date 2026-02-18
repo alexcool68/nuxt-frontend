@@ -1,9 +1,12 @@
 <script setup lang="ts">
-import type { Step, StepFile } from "~/types/compta";
+import type { Step, File } from "~/types/compta";
+
+import FilesList from "./FilesManagerList.vue";
+import AddFileToStep from "../forms/AddFileToStep.vue";
 
 const props = defineProps<{
   open: boolean;
-  step: Step | null;
+  step: Step | undefined;
 }>();
 
 const emit = defineEmits<{
@@ -11,42 +14,71 @@ const emit = defineEmits<{
   (e: "refresh"): void;
 }>();
 
-// --- STATE ---
+// COMPUTED
+const isOpen = computed({
+  get: () => props.open,
+  set: (value) => emit("update:open", value),
+});
+
+// STATE
 const config = useRuntimeConfig();
-const baseURL = config.public.authBaseUrl || "http://localhost:3333";
 const toast = useToast();
 
-const isStepFileDeleteModalOpen = ref(false);
+const baseURL = config.public.authBaseUrl || "http://localhost:3333";
 
-const newFile = ref<StepFile>({
+// État des Modales
+const isFileDeleteModalOpen = ref(false);
+
+// Données temporaires pour les formulaires
+const newFile = ref<Partial<File>>({
+  stepId: 0,
   direction: "IN",
   logicalName: "",
   defaultPhysicalName: "",
   defaultCopybook: "",
 });
 
-const currentStepFile = ref<StepFile | null>(null);
+// Current data
+const currentFile = ref<File | undefined>(undefined);
 
-// --- COMPUTED ---
-const isOpen = computed({
-  get: () => props.open,
-  set: (value) => emit("update:open", value),
-});
+// FONCTIONS
+async function createFile() {
+  if (!props.step || !newFile) return;
 
-// --- METHODS ---
-
-// 1. CRÉER
-async function createFileStep() {
-  if (!props.step) return;
-
-  const stepId = props.step.id;
+  //const stepId = props.step.id;
 
   try {
-    await $fetch(`${baseURL}/api/steps/${stepId}/files`, {
+    await $fetch(`${baseURL}/api/v1/files`, {
       method: "POST",
-      body: { ...newFile.value },
+      body: { ...newFile.value, stepId: props.step.id },
     });
 
+    newFile.value = {
+      stepId: 0,
+      direction: "IN",
+      logicalName: "",
+      defaultPhysicalName: "",
+      defaultCopybook: "",
+    };
+
+    emit("refresh");
+  } catch (e: any) {
+    formatAndDisplayErrors(e);
+  }
+}
+
+async function deleteFile() {
+  if (!currentFile.value || !props.step) return;
+
+  const fileId = currentFile.value.id;
+
+  try {
+    await $fetch(`${baseURL}/api/v1/files/${fileId}`, {
+      method: "DELETE",
+    });
+
+    isFileDeleteModalOpen.value = false;
+    currentFile.value = undefined;
     newFile.value = {
       direction: "IN",
       logicalName: "",
@@ -60,34 +92,15 @@ async function createFileStep() {
   }
 }
 
-// 2. OUVRIR MODAL
-function confirmDeleteStepFile(stepFile: StepFile) {
-  currentStepFile.value = stepFile;
-  isStepFileDeleteModalOpen.value = true;
+// OUVRIR MODAL
+function confirmDeleteFile(file: File) {
+  if (!file) return;
+
+  currentFile.value = file;
+  isFileDeleteModalOpen.value = true;
 }
 
-// 3. SUPPRIMER
-async function deleteStepFile() {
-  if (!currentStepFile.value || !props.step) return;
-
-  const stepId = props.step.id;
-  const fileId = currentStepFile.value.id;
-
-  try {
-    await $fetch(`${baseURL}/api/steps/${stepId}/files/${fileId}`, {
-      method: "DELETE",
-    });
-
-    isStepFileDeleteModalOpen.value = false;
-    currentStepFile.value = null;
-
-    emit("refresh");
-  } catch (e: any) {
-    formatAndDisplayErrors(e);
-  }
-}
-
-// 4. HELPERS
+// HELPERS
 function formatAndDisplayErrors(e: any) {
   let errorTitle = "Erreur";
   let errorDescription = "Une erreur inattendue est survenue.";
@@ -118,7 +131,7 @@ function formatAndDisplayErrors(e: any) {
 <template>
   <div>
     <AppModal
-      v-model="isStepFileDeleteModalOpen"
+      v-model="isFileDeleteModalOpen"
       class="z-50"
       :ui="{ footer: 'justify-end' }"
       description="Modal for delete a File Step"
@@ -135,9 +148,9 @@ function formatAndDisplayErrors(e: any) {
           fichier suivant :
         </p>
         <ul class="ml-5 list-disc">
-          <li>Logical name : {{ currentStepFile?.logicalName }}</li>
-          <li v-if="currentStepFile?.defaultPhysicalName">
-            Physical name : {{ currentStepFile?.defaultPhysicalName }}
+          <li>Logical name : {{ currentFile?.logicalName }}</li>
+          <li v-if="currentFile?.defaultPhysicalName">
+            Physical name : {{ currentFile?.defaultPhysicalName }}
           </li>
         </ul>
 
@@ -150,14 +163,14 @@ function formatAndDisplayErrors(e: any) {
         <UButton
           color="neutral"
           variant="ghost"
-          @click="isStepFileDeleteModalOpen = false"
+          @click="isFileDeleteModalOpen = false"
           label="Annuler"
         />
 
         <UButton
           color="error"
           variant="solid"
-          @click="deleteStepFile"
+          @click="deleteFile"
           label="Confirmer la suppression"
         />
       </template>
@@ -177,17 +190,11 @@ function formatAndDisplayErrors(e: any) {
       </template>
       <template #body>
         <div class="flex flex-col flex-1 h-full gap-5">
-          <DashboardComptaFormFileForm
-            @submit="createFileStep"
-            v-model="newFile"
-          />
+          <AddFileToStep @submit="createFile" v-model="newFile" />
 
           <USeparator orientation="horizontal" />
 
-          <DashboardComptaFilesList
-            :files="step?.possibleFiles"
-            @delete-file="confirmDeleteStepFile"
-          />
+          <FilesList :files="step?.files" @delete-file="confirmDeleteFile" />
         </div>
       </template>
     </USlideover>

@@ -30,6 +30,25 @@ export interface WorkflowResponse {
   workflow: WorkflowStep[];
 }
 
+// v1
+
+// v0
+export interface Chain {
+  id?: number;
+  code: string;
+  description: string;
+  steps: Step[];
+}
+
+export interface Step {
+  id?: number;
+  chainId?: number;
+  name: string;
+  rank: number;
+  possibleFiles: StepFile[];
+  files: File[];
+}
+
 export interface StepFile {
   id?: number;
   direction: "IN" | "OUT";
@@ -37,21 +56,14 @@ export interface StepFile {
   defaultPhysicalName: string;
   defaultCopybook: string;
 }
-
-export interface Step {
+export interface File {
   id?: number;
-  name: string;
-  rank: number;
-  possibleFiles: StepFile[];
+  stepId: number;
+  direction: "IN" | "OUT";
+  logicalName: string;
+  defaultPhysicalName: string;
+  defaultCopybook: string;
 }
-
-export interface Chain {
-  id: number;
-  code: string;
-  description: string;
-  steps: Step[];
-}
-
 //  solo
 
 export interface Rule {
